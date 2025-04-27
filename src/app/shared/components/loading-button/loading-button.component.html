@@ -1,0 +1,8 @@
+<button
+  [attr.type]="type"
+  class="btn"
+  [class]="btnClass"
+  [disabled]="btnDisable || isLoading">
+  <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+  {{ isLoading ? loadingLabel : label }}
+</button>

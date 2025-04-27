@@ -1,0 +1,88 @@
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    Add New Ledger Entry
+  </div>
+  <div class="card-body">
+    <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label class="form-label">Balance</label>
+          <input type="number" class="form-control" formControlName="balance">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Debit</label>
+          <input type="number" class="form-control" formControlName="debit">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Credit</label>
+          <input type="number" class="form-control" formControlName="credit">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" formControlName="description">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Hint By</label>
+          <input type="text" class="form-control" formControlName="hintBy">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Mode of Payment</label>
+          <select class="form-select" formControlName="paymentMode">
+            <option value="">Select</option>
+            <option>Cash</option>
+            <option>Bank Transfer</option>
+            <option>Cheque</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Deposited By</label>
+          <input type="text" class="form-control" formControlName="depositedBy">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Debited By</label>
+          <input type="text" class="form-control" formControlName="debitedBy">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-control" formControlName="date">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Verified By</label>
+          <input type="text" class="form-control" formControlName="verifiedBy">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          <select class="form-select" formControlName="status">
+            <option value="">Select</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 text-end">
+        <!-- <button class="btn btn-primary" type="submit" [disabled]="ledgerForm.invalid">
+          {{ existingLedger? 'Update' : 'Create' }} Entry
+        </button> -->
+        <app-loading-button
+          [btnClass]="'btn btn-primary'"
+          [isLoading]="isLoading"
+          [btnDisable]="ledgerForm.invalid"
+          [label]="(existingLedger ? 'Update' : 'Create') + ' Entry'" [type]="'submit'">
+        </app-loading-button>
+      </div>
+    </form>
+  </div>
+</div>

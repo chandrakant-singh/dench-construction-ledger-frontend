@@ -1,0 +1,29 @@
+:host ::ng-deep .ngx-datatable.bootstrap {
+  font-size: 14px;
+}
+
+::ng-deep .ledger-table {
+  border: 1px solid #dee2e6; /* outer border */
+  border-radius: 0.25rem;
+  font-size: 14px;
+}
+
+::ng-deep .ledger-table .datatable-header-cell,
+::ng-deep .ledger-table .datatable-body-cell {
+  border-right: 1px solid #dee2e6; /* vertical cell border */
+}
+
+::ng-deep .ledger-table .datatable-header-cell:last-child,
+::ng-deep .ledger-table .datatable-body-cell:last-child {
+  border-right: none; /* remove border from last column */
+}
+
+::ng-deep .ledger-table .datatable-row-center,
+::ng-deep .ledger-table .datatable-body-row,
+::ng-deep .ledger-table .datatable-header {
+  border-bottom: 1px solid #dee2e6; /* horizontal row border */
+}
+
+::ng-deep .ledger-table .datatable-row-center:last-child {
+  border-bottom: none; /* optional: remove border from last row */
+}

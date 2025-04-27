@@ -1,0 +1,48 @@
+<!-- Top Navbar -->
+<nav class="navbar navbar-dark bg-dark fixed-top">
+  <div class="container-fluid">
+    <button class="btn btn-outline-light btn-sm d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+      ☰
+    </button>
+    <div class="d-md-block d-none">
+      <a class="navbar-brand fs-6" href="javascript:void(0)">DenchConstruction</a>
+    </div>
+    <div class="d-flex align-items-center ms-auto">
+      <span class="me-3 text-white">{{loggedInUserName}}</span>
+      <button class="btn btn-outline-light btn-sm" (click)="logOut()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar -->
+<div class="offcanvas offcanvas-start bg-light" tabindex="-1" id="sidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">DenchConstruction</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <nav class="nav flex-column">
+      @for (item of navItems; track $index) {
+        <a class="nav-link" [routerLink]="item.path" routerLinkActive="active">{{item.label}}</a>
+      }
+    </nav>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container-fluid" style="padding-top: 70px;">
+  <div class="row">
+    <!-- Static Sidebar for md+ -->
+    <div class="col-md-3 col-lg-2 d-none d-md-block bg-light min-vh-100">
+      <nav class="nav flex-column p-3">
+        @for (item of navItems; track $index) {
+          <a class="nav-link" [routerLink]="item.path" routerLinkActive="active">{{item.label}}</a>
+        }
+      </nav>
+    </div>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

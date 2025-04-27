@@ -1,0 +1,26 @@
+<!-- create-supervisor.component.html -->
+<div class="container">
+  <h3>Create Supervisor</h3>
+  <form [formGroup]="supervisorForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label>Name</label>
+      <input type="text" class="form-control" formControlName="name" required />
+    </div>
+    <div class="mb-3">
+      <label>Email</label>
+      <input type="email" class="form-control" formControlName="email" required />
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" class="form-control" formControlName="password" required />
+    </div>
+    <!-- <button type="submit" class="btn btn-primary" [disabled]="supervisorForm.invalid">Create Supervisor</button> -->
+    <app-loading-button
+      [btnClass]="'btn btn-primary'"
+      [isLoading]="isLoading"
+      [btnDisable]="supervisorForm.invalid"
+      [label]="'Create Supervisor'"
+      [type]="'submit'">
+    </app-loading-button>
+  </form>
+</div>
