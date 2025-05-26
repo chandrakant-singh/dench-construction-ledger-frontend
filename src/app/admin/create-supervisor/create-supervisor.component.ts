@@ -35,20 +35,7 @@ export class CreateSupervisorComponent {
 
     try {
       this.isLoading = true;
-      // const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-
-      // const userId = userCredential.user.uid;
-
-      // // Save name and role in Firestore
-      // await setDoc(doc(this.firestore, 'users', userId), {
-      //   name,
-      //   email,
-      //   role: 'supervisor',
-      //   createdAt: new Date(),
-      // });
-
       await this.authService.createSupervisor(name, email, password);
-      // alert('Supervisor created successfully!');
       this.toastService.show('Supervisor created successfully!', 'success');
       this.supervisorForm.reset();
     } catch (error) {

@@ -2,13 +2,13 @@
   <div class="card-header bg-primary text-white">
     Add New Ledger Entry
   </div>
-  <div class="card-body">
+  <div class="card-body" *ngIf="appUser; else loadingTemplate">
     <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">
       <div class="row g-3">
 
         <div class="col-md-6">
           <label class="form-label">Balance</label>
-          <input type="number" class="form-control" formControlName="balance">
+          <input type="number" class="form-control" formControlName="balance" [readonly]="!isAdmin">
         </div>
 
         <div class="col-md-6">
@@ -16,52 +16,62 @@
           <input type="number" class="form-control" formControlName="debit">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Credit</label>
           <input type="number" class="form-control" formControlName="credit">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Description</label>
-          <input type="text" class="form-control" formControlName="description">
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Hint By</label>
-          <input type="text" class="form-control" formControlName="hintBy">
         </div>
 
         <div class="col-md-6">
           <label class="form-label">Mode of Payment</label>
           <select class="form-select" formControlName="paymentMode">
             <option value="">Select</option>
-            <option>Cash</option>
-            <option>Bank Transfer</option>
-            <option>Cheque</option>
+            <option value="cash">Cash</option>
+            <option value="bank">Bank Transfer</option>
+            <option value="cheque">Cheque</option>
           </select>
         </div>
 
         <div class="col-md-6">
+          <label class="form-label">Description</label>
+          <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Hint By</label>
+          <textarea type="text" class="form-control" cols="1" formControlName="hintBy" rows="2"></textarea>
+        </div>
+
+        <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Deposited By</label>
-          <input type="text" class="form-control" formControlName="depositedBy">
+          <select class="form-select" formControlName="depositedBy" (change)="onUserChange($event, 'depositedBy')">
+            <option value="">Select Users</option>
+            <option *ngFor="let user of allUsers" [value]="user.uid">
+              {{ user.name }}
+            </option>
+          </select>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Debited By</label>
-          <input type="text" class="form-control" formControlName="debitedBy">
+          <select class="form-select" formControlName="debitedBy" (change)="onUserChange($event, 'debitedBy')">
+            <option value="">Select Users</option>
+            <option *ngFor="let user of allUsers" [value]="user.uid">
+              {{ user.name }}
+            </option>
+          </select>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Date</label>
           <input type="date" class="form-control" formControlName="date">
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Verified By</label>
-          <input type="text" class="form-control" formControlName="verifiedBy">
-        </div>
+        <!-- <div class="col-md-6" *ngIf="isAdmin">
+          <label class="form-label">Approved By</label>
+          <input type="text" class="form-control" formControlName="approvedBy">
+        </div> -->
 
-        <div class="col-md-6">
+        <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Status</label>
           <select class="form-select" formControlName="status">
             <option value="">Select</option>
@@ -76,13 +86,17 @@
         <!-- <button class="btn btn-primary" type="submit" [disabled]="ledgerForm.invalid">
           {{ existingLedger? 'Update' : 'Create' }} Entry
         </button> -->
-        <app-loading-button
-          [btnClass]="'btn btn-primary'"
-          [isLoading]="isLoading"
-          [btnDisable]="ledgerForm.invalid"
+        <app-loading-button [btnClass]="'btn btn-primary'" [isLoading]="isLoading" [btnDisable]="ledgerForm.invalid"
           [label]="(existingLedger ? 'Update' : 'Create') + ' Entry'" [type]="'submit'">
         </app-loading-button>
+        <button class="btn btn-secondary ms-2" type="button" (click)="onCancel()">Cancel</button>
       </div>
     </form>
   </div>
 </div>
+
+<ng-template #loadingTemplate>
+  <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+  </div>
+</ng-template>

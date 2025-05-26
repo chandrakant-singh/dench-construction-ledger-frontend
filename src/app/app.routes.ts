@@ -10,18 +10,18 @@ export const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () => import('./auth/auth-routing.module').then((m) => m.AuthRoutingModule),
-    canActivate: [AuthGuard]
+    // canActivate: [AuthGuard]
   },
   {
     path: 'admin',
     loadChildren: () => import('./admin/admin-routing.module').then((m) => m.AdminRoutingModule),
-    canLoad: [AuthGuard],
-    canActivate: [AuthGuard],
+    // canLoad: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'supervisor',
     loadChildren: () => import('./supervisor/supervisor-routing.module').then((m) => m.SupervisorRoutingModule),
-    canLoad: [AuthGuard],
-    canActivate: [AuthGuard],
+    // canLoad: [AuthGuard],
+    // canActivate: [AuthGuard],
   }
 ];

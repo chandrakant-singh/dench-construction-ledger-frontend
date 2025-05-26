@@ -5,12 +5,13 @@
 ::ng-deep .ledger-table {
   border: 1px solid #dee2e6; /* outer border */
   border-radius: 0.25rem;
-  font-size: 14px;
+  font-size: 12px !important;
 }
 
 ::ng-deep .ledger-table .datatable-header-cell,
 ::ng-deep .ledger-table .datatable-body-cell {
   border-right: 1px solid #dee2e6; /* vertical cell border */
+  padding: 0.4rem !important;
 }
 
 ::ng-deep .ledger-table .datatable-header-cell:last-child,
@@ -26,4 +27,19 @@
 
 ::ng-deep .ledger-table .datatable-row-center:last-child {
   border-bottom: none; /* optional: remove border from last row */
+}
+
+@media (max-width: 768px) {
+  ngx-datatable {
+    font-size: 12px !important;
+  }
+
+  .datatable-header,
+  .datatable-body-row {
+    white-space: nowrap;
+  }
+
+  .datatable-body-cell {
+    padding: 4px 8px !important;
+  }
 }

@@ -14,11 +14,11 @@ import {
   DocumentData
 } from '@angular/fire/firestore';
 import { from, Observable, map } from 'rxjs';
+import { limit, orderBy } from 'firebase/firestore';
 
 import { LedgerEntry } from '../models/ledger.model';
 import { UserService } from './user.service';
 import { StorageUtils } from '../utils/storage.utils';
-import { orderBy } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -89,8 +89,20 @@ export class LedgerService {
   async getLedgerEntryById(id: string): Promise<any> {
     const docRef = doc(this.firestore, `ledger/${id}`);
     const docSnap = await getDoc(docRef);
-    if(docSnap.exists()) {
+    if (docSnap.exists()) {
       return docSnap.data() as LedgerEntry;
     }
   }
+
+  getLatestEntry(): Observable<LedgerEntry | null> {
+    const q = query(this.collectionRef, orderBy('createdAt', 'desc'), limit(1));
+    return from(getDocs(q)).pipe(
+      map(snapshot => {
+        if (snapshot.empty) return null;
+        const doc = snapshot.docs[0];
+        return { id: doc.id, ...(doc.data() as LedgerEntry) };
+      })
+    );
+  }
+
 }

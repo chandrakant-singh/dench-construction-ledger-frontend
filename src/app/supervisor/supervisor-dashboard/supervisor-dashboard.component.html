@@ -10,20 +10,21 @@
   <div class="col">
     <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
   </div>
-  <div class="col-12" *ngIf="rows.length">
+  <div class="col-12">
     <div class="table-responsive vh-100" style="height: 500px; display: flex; flex-direction: column;">
       <ngx-datatable
-      class="bootstrap ledger-table"
-      [rows]="rows"
-      [columns]="columns"
-      [columnMode]="'force'"
-      [headerHeight]="40"
-      [footerHeight]="40"
-      [scrollbarH]="true"
-      [scrollbarV]="true"
-      [rowHeight]="50"
-      [limit]="10">
-    </ngx-datatable>
+        class="bootstrap ledger-table"
+        [rows]="rows"
+        [columns]="columns"
+        [columnMode]="'standard'"
+        [headerHeight]="30"
+        [footerHeight]="30"
+        [scrollbarH]="true"
+        [scrollbarV]="true"
+        [rowHeight]="35"
+        [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
+        [limit]="10">
+      </ngx-datatable>
     </div>
   </div>
 </div>

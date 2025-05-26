@@ -17,12 +17,16 @@ const routes: Routes = [
         loadComponent: () => import('./admin-dashboard/admin-dashboard.component').then((m) => m.AdminDashboardComponent)
       },
       {
+        path: 'create-ledger-entry',
+        loadComponent: () => import('../shared/components/create-ledger-entry/create-ledger-entry.component').then((m) => m.CreateLedgerEntryComponent)
+      },
+      {
         path: 'create-supervisor',
         loadComponent:  () => import('./create-supervisor/create-supervisor.component').then((m) => m.CreateSupervisorComponent)
       },
       {
-        path: 'create-ledger-entry',
-        loadComponent: () => import('../shared/components/create-ledger-entry/create-ledger-entry.component').then((m) => m.CreateLedgerEntryComponent)
+        path: 'list-supervisor',
+        loadComponent: () => import('./list-supervisor/list-supervisor.component').then((m) => m.ListSupervisorComponent)
       }
     ]
   }

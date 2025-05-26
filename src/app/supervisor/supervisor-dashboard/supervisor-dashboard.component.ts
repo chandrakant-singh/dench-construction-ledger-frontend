@@ -35,14 +35,14 @@ export class SupervisorDashboardComponent {
     this.columns = [
       { name: 'Balance', prop: 'balance' },
       { name: 'Debit', prop: 'debit' },
-      { name: 'Credit', prop: 'credit' },
+      // { name: 'Credit', prop: 'credit' },
       { name: 'Description', prop: 'description' },
       { name: 'Hint By', prop: 'hintBy' },
-      { name: 'Payment Mode', prop: 'paymentMode' },
-      { name: 'Deposited By', prop: 'depositedBy' },
+      // { name: 'Payment Mode', prop: 'paymentMode' },
+      // { name: 'Deposited By', prop: 'depositedBy' },
       { name: 'Date', prop: 'date' },
-      { name: 'Verified By', prop: 'verifiedBy' },
-      { name: 'Created By', prop: 'createdByName' },
+      // { name: 'Approved By', prop: 'approvedBy' },
+      // { name: 'Created By', prop: 'createdByName' },
       {
         name: 'Status',
         prop: 'status',
@@ -62,9 +62,9 @@ export class SupervisorDashboardComponent {
     console.log('Filtered Rows:', this.filteredRows);
   }
 
-    createEntry() {
-      this.router.navigate([EndPoints.CREATE_LEDGER_ENTRY], { queryParams: { redirect: this.router.url } });
-    }
+  createEntry() {
+    this.router.navigate([EndPoints.CREATE_LEDGER_ENTRY], { queryParams: { redirect: this.router.url } });
+  }
 
   private getLedgerEntries() {
     this.ledgerService.getLedgerEntries(StorageUtils.getUid()).subscribe(

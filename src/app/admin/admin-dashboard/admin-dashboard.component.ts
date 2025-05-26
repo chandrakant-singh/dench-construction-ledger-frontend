@@ -4,9 +4,13 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
+
 import { EndPoints } from '../../shared/constants/endpoints';
 import { LedgerService } from '../../core/services/ledger.service';
-import { LedgerEntry } from '../../core/models/ledger.model';
+import { LedgerEntry, LedgerEntryReq } from '../../core/models/ledger.model';
+import { StorageUtils } from '../../core/utils/storage.utils';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -44,12 +48,13 @@ export class AdminDashboardComponent {
       { name: 'Description', prop: 'description' },
       { name: 'Hint By', prop: 'hintBy' },
       { name: 'Payment Mode', prop: 'paymentMode' },
-      { name: 'Deposited By', prop: 'depositedBy' },
+      { name: 'Deposited By', prop: 'depositedByName' },
+      { name: 'Debited By', prop: 'debitedByName' },
       { name: 'Date', prop: 'date' },
-      { name: 'Verified By', prop: 'verifiedBy' },
+      // { name: 'Approved By', prop: 'approvedBy' },
       { name: 'Created By', prop: 'createdByName' },
       {
-        name: 'Status',
+        name: 'Status/Approved by',
         prop: 'status',
         cellTemplate: this.statusTpl
       },
@@ -97,6 +102,47 @@ export class AdminDashboardComponent {
       console.log('Deleting row:', row);
       // Remove from Firebase or local array
     }
+  }
+
+  onStatusChange(row: LedgerEntryReq) {
+    console.log('Status changed for row:', row);
+    // Update status in Firebase or local array
+    row.status = row.status === 'pending' ? 'approved' : 'pending';
+    row.approvedBy = StorageUtils.getUid();
+    row.approvedByName = StorageUtils.getUserName();
+    this.ledgerService.updateLedger(row.id, row)
+      .subscribe({
+        next: () => {
+          this.getLedgerEntries();
+        },
+        error: (error) => {
+          console.error('Error updating ledger entry:', error);
+        }
+      })
+  }
+
+  exportToExcel(): void {
+    const exportData = this.filteredRows.map(row => ({
+      'Date': row.date,
+      'Balance': row.balance,
+      'Credit': row.credit,
+      'Debit': row.debit,
+      'Description': row.description,
+      'Hint By': row.hintBy,
+      'Payment Mode': row.paymentMode,
+      'Deposited By': row.depositedByName,
+      'Debited By': row.debitedByName,
+      'Approved By': row.approvedByName,
+    }));
+
+
+    const fileName = `LedgerData-${new Date().toLocaleDateString()}.xlsx`;
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData); // or your data array
+    const workbook: XLSX.WorkBook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    FileSaver.saveAs(data, fileName);
   }
 
   private getLedgerEntries() {

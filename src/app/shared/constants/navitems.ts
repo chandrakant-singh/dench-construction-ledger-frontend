@@ -5,13 +5,18 @@ export const NAV_ITEMS = [
     roles: ['admin']
   },
   {
+    label: 'Add Ledger Entry',
+    path: '/admin/create-ledger-entry',
+    roles: ['admin']
+  },
+  {
     label: 'Create Supervisor',
     path: '/admin/create-supervisor',
     roles: ['admin']
   },
   {
-    label: 'Add Ledger Entry',
-    path: '/admin/create-ledger-entry',
+    label: 'List Supervisor',
+    path: '/admin/list-supervisor',
     roles: ['admin']
   },
   {
