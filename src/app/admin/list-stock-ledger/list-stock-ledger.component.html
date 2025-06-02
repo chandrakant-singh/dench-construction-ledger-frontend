@@ -1,0 +1,24 @@
+<div class="row">
+  <div class="col-12 col-sm-8 col-md-4">
+    <input type="text" class="form-control mb-3 form-control form-control-sm" placeholder="Search..." />
+  </div>
+  <div class="col mb-2">
+    <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
+    <button class="btn btn-warning btn-sm float-end me-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+  </div>
+  <div class="col-12" *ngIf="filteredRows.length; else loadingTemplate">
+    <app-ngx-datatable
+      [rows]="filteredRows"
+      [columns]="ledgerColumns"
+      header="Stock Ledger"
+      [headerHelperText]="`Balance:  ${this.lastStockLedger?.balance || 0}`"
+      (rowEdit)="onEditLedger($event)">
+    </app-ngx-datatable>
+  </div>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+  </div>
+</ng-template>

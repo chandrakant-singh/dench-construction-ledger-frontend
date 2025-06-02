@@ -1,0 +1,25 @@
+<div class="modal fade" id="reusableModal" tabindex="-1" aria-labelledby="reusableModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reusableModalLabel">{{ title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <ng-container *ngIf="contentTemplate; else messageTpl">
+          <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+        </ng-container>
+
+        <ng-template #messageTpl>
+          <p>{{ message }}</p>
+        </ng-template>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ cancelText }}</button>
+        <button type="button" class="btn btn-primary" (click)="onConfirm()">{{ confirmText }}</button>
+      </div>
+    </div>
+  </div>
+</div>

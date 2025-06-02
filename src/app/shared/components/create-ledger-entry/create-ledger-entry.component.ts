@@ -162,10 +162,10 @@ export class CreateLedgerEntryComponent {
     console.log(`${field} selected user:`, selectedUser);
     if (field === 'depositedBy') {
       // handle depositedBy logic
-      this.ledgerForm.patchValue({'depositedByName': selectedUser?.name});
+      this.ledgerForm.patchValue({ 'depositedByName': selectedUser?.name });
     } else if (field === 'debitedBy') {
       // handle debitedBy logic
-      this.ledgerForm.patchValue({'debitedByName': selectedUser?.name});
+      this.ledgerForm.patchValue({ 'debitedByName': selectedUser?.name });
     }
   }
 
@@ -232,6 +232,13 @@ export class CreateLedgerEntryComponent {
     - You calculate and store the running balance at the time of saving.
     - You dynamically re-display it in the table in case any data changes after saving.
   */
+
+  calculateBalance() {
+    const stockIn = +this.ledgerForm.get('credit')?.value || 0;
+    const stockOut = +this.ledgerForm.get('debit')?.value || 0;
+    const balance = (this.lastLedgerEntry?.balance || 0) + stockIn - stockOut;
+    this.ledgerForm.patchValue({ balance });
+  }
 
   private handleBalanceAmount() {
     // balance = previousBalance + credit - debit

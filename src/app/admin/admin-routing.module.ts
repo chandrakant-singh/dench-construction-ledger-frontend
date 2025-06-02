@@ -25,8 +25,20 @@ const routes: Routes = [
         loadComponent:  () => import('./create-supervisor/create-supervisor.component').then((m) => m.CreateSupervisorComponent)
       },
       {
+        path: 'create-stock-ledger',
+        loadComponent: () => import('../shared/components/create-stock-ledger/create-stock-ledger.component').then((m) => m.CreateStockLedgerComponent)
+      },
+      {
         path: 'list-supervisor',
         loadComponent: () => import('./list-supervisor/list-supervisor.component').then((m) => m.ListSupervisorComponent)
+      },
+      {
+        path: 'list-stock-ledger',
+        loadComponent: () => import('./list-stock-ledger/list-stock-ledger.component').then((m) => m.ListStockLedgerComponent)
+      },
+      {
+        path: 'list-balance-ledger',
+        loadComponent: () => import('./list-balance-ledger/list-balance-ledger.component').then((m) => m.ListBalanceLedgerComponent)
       }
     ]
   }

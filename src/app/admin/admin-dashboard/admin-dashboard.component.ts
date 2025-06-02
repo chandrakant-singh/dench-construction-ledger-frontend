@@ -26,6 +26,7 @@ export class AdminDashboardComponent {
 
   rows: Array<LedgerEntry> = [];
   private searchTimeout: any;
+  lastLedger: LedgerEntry | null = null;
 
   columns: any = [];
 
@@ -65,6 +66,7 @@ export class AdminDashboardComponent {
       },
     ];
     this.getLedgerEntries();
+    this.getLastStockLedger();
   }
 
   onSearchInputChange() {
@@ -154,6 +156,19 @@ export class AdminDashboardComponent {
           // this.filterRows();
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
+        },
+        error: (error) => {
+          console.error('Error fetching ledger entries:', error);
+        }
+      }
+    );
+  }
+
+  private getLastStockLedger() {
+    this.ledgerService.getLatestEntry().subscribe(
+      {
+        next: (ledgerEntries: any) => {
+          this.lastLedger = ledgerEntries;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);

@@ -1,4 +1,5 @@
 export const NAV_ITEMS = [
+  // Admin
   {
     label: 'Dashboard',
     path: '/admin/dashboard',
@@ -19,6 +20,18 @@ export const NAV_ITEMS = [
     path: '/admin/list-supervisor',
     roles: ['admin']
   },
+  {
+    label: 'List Stock Ledger',
+    path: '/admin/list-stock-ledger',
+    roles: ['admin']
+  },
+  {
+    label: 'List Balance Ledger',
+    path: '/admin/list-balance-ledger',
+    roles: ['admin']
+  },
+
+  // Supervisor
   {
     label: 'Dashboard',
     path: '/supervisor/dashboard',

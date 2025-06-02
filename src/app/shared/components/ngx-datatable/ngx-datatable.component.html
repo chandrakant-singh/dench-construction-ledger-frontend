@@ -1,1 +1,39 @@
-<p>ngx-datatable works!</p>
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>{{ header }}</strong>
+    <strong *ngIf="headerHelperText" class="text-muted">{{ headerHelperText }}</strong>
+  </div>
+  <div class="card-body p-0 ">
+    <div class="row">
+      <div class="col-12">
+        <div class="table-responsive">
+          <ngx-datatable
+            class="bootstrap"
+            [rows]="rows"
+            [columns]="columns"
+            [columnMode]="'force'"
+            [headerHeight]="50"
+            [rowHeight]="50"
+            [footerHeight]="50"
+            [limit]="limit"
+            [scrollbarH]="true"
+            [scrollbarV]="true"
+            (activate)="onRowClick($event)"
+            >
+            <ngx-datatable-column *ngFor="let col of columns" [name]="col.name"
+              [prop]="col.prop"></ngx-datatable-column>
+
+            <!-- Optional actions column -->
+            <ngx-datatable-column name="Actions" [sortable]="false" [canAutoResize]="false" [width]="">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <button class="btn btn-xs btn-primary me-2" (click)="onEdit(row)">Edit</button>
+                <!-- <button class="btn btn-xs btn-danger" (click)="onDelete(row)">Delete</button> -->
+              </ng-template>
+            </ngx-datatable-column>
+          </ngx-datatable>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

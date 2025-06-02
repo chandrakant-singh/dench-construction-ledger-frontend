@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-header bg-primary text-white">
-    Add New Ledger Entry
+    {{ existingLedger ? 'Update' : 'Create New' }} Ledger Entry
   </div>
   <div class="card-body" *ngIf="appUser; else loadingTemplate">
     <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">
@@ -11,14 +11,14 @@
           <input type="number" class="form-control" formControlName="balance" [readonly]="!isAdmin">
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Debit</label>
-          <input type="number" class="form-control" formControlName="debit">
-        </div>
-
         <div class="col-md-6" *ngIf="isAdmin">
           <label class="form-label">Credit</label>
-          <input type="number" class="form-control" formControlName="credit">
+          <input type="number" class="form-control" formControlName="credit" (input)="calculateBalance()">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Debit</label>
+          <input type="number" class="form-control" formControlName="debit" (input)="calculateBalance()">
         </div>
 
         <div class="col-md-6">

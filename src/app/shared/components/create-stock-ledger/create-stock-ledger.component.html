@@ -1,0 +1,122 @@
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    {{ existingLedger ? 'Update' : 'Create New' }} Stock Ledger Entry
+  </div>
+  <div class="card-body">
+    <form [formGroup]="stockLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
+      <!-- Main Category -->
+      <div class="col-md-4">
+        <label class="form-label">Main Category</label>
+        <div class="d-flex">
+          <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
+            <option value="">Select Category</option>
+            <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
+          </select>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('main')">+</button>
+        </div>
+
+        <div class="invalid-feedback"
+          *ngIf="stockLedgerForm.get('mainCategory')?.touched && stockLedgerForm.get('mainCategory')?.invalid">
+          Category is required
+        </div>
+      </div>
+
+      <!-- Sub Category -->
+      <div class="col-md-4">
+        <label class="form-label">Sub Category</label>
+        <div class="d-flex">
+          <select class="form-select" formControlName="subCategory">
+            <option value="">Select Subcategory</option>
+            <option *ngFor="let sub of mainSubCategories" [value]="sub">{{ sub }}</option>
+          </select>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('sub')">+</button>
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="stockLedgerForm.get('subCategory')?.touched && stockLedgerForm.get('subCategory')?.invalid">
+          Subcategory is required
+        </div>
+      </div>
+
+      <!-- Stock In -->
+      <div class="col-md-4">
+        <label class="form-label">Stock In</label>
+        <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()">
+      </div>
+
+      <!-- Stock Out -->
+      <div class="col-md-4">
+        <label class="form-label">Stock Out</label>
+        <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()">
+      </div>
+
+      <!-- Balance (disabled) -->
+      <div class="col-md-4">
+        <label class="form-label">Balance</label>
+        <input type="number" class="form-control" formControlName="balance">
+      </div>
+
+      <!-- Date -->
+      <div class="col-md-4">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" formControlName="date">
+        <div class="invalid-feedback"
+          *ngIf="stockLedgerForm.get('date')?.touched && stockLedgerForm.get('date')?.invalid">
+          Date is required
+        </div>
+      </div>
+
+      <div class="col-12 text-end">
+        <app-loading-button [btnClass]="'btn btn-primary btn-sm'" [isLoading]="isLoading"
+          [btnDisable]="stockLedgerForm.invalid" [label]="(existingLedger ? 'Update' : 'Create')" [type]="'submit'">
+        </app-loading-button>
+        <button type="submit" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+  </div>
+</ng-template>
+
+<!-- The reusable modal -->
+<app-dialog
+  [title]="dialogTitle"
+  [contentTemplate]="dialogTemplate"
+  [confirmText]="'Save'"
+  [cancelText]="'Close'"
+  (confirmEvent)="handleDialogConfirm($event)"
+  >
+</app-dialog>
+
+<!-- Template passed to modal for creating main category -->
+<ng-template #createMainCategory>
+  <form [formGroup]="mainCategoryForm">
+    <div class="mb-3">
+      <label>Main Category</label>
+      <input class="form-control" formControlName="category" placeholder="Enter Main Category" />
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template passed to modal for creating sub category -->
+<ng-template #createSubCategory>
+  <form [formGroup]="subCategoryForm">
+    <div class="mb-3">
+      <label class="form-label">Sub Category</label>
+      <div class="d-flex">
+        <select class="form-select" formControlName="category">
+          <option value="">Select Category</option>
+          <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label>Sub Category</label>
+      <input class="form-control" formControlName="subCategory" placeholder="Enter Sub Category" />
+    </div>
+  </form>
+</ng-template>

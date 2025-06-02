@@ -3,11 +3,17 @@ export enum EndPoints {
   AUTH_LOGIN = 'auth/login',
   AUTH_REGISTER = 'auth/signup',
 
+  // Admin
   ADMIN_DASHBOARD = 'admin/dashboard',
   CREATE_SUPERVISOR = 'admin/create-supervisor',
   CREATE_LEDGER_ENTRY = 'admin/create-ledger-entry',
-  LIST_SUPERVISOR = 'admin/list-supervisor',
+  CREATE_STOCK_LEDGER = 'admin/create-stock-ledger',
 
+  LIST_SUPERVISOR = 'admin/list-supervisor',
+  LIST_STOCK_LEDGER = 'admin/list-stock-ledger',
+  LIST_BALANCE_LEDGER = 'admin/list-balance-ledger',
+
+  // Supervisor
   SUPERVISOR_DASHBOARD = 'supervisor/dashboard',
   SUPERVISOR_ADD_ENTRY = 'supervisor/add-entry'
 }
