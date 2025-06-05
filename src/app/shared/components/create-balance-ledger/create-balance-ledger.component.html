@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-header bg-primary text-white">
-    {{ existingLedger ? 'Update' : 'Create New' }} Stock Ledger Entry
+    {{ existingLedger ? 'Update' : 'Create New' }} Balance Ledger Entry
   </div>
   <div class="card-body">
     <form [formGroup]="balanceLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
