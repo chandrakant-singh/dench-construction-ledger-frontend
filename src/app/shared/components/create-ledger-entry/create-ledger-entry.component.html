@@ -6,22 +6,22 @@
     <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">
       <div class="row g-3">
 
-        <div class="col-md-6">
+        <div class="col-lg-4 col-md-6">
           <label class="form-label">Balance</label>
           <input type="number" class="form-control" formControlName="balance" [readonly]="!isAdmin">
         </div>
 
-        <div class="col-md-6" *ngIf="isAdmin">
+        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Credit</label>
           <input type="number" class="form-control" formControlName="credit" (input)="calculateBalance()">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-4 col-md-6">
           <label class="form-label">Debit</label>
           <input type="number" class="form-control" formControlName="debit" (input)="calculateBalance()">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-4 col-md-6">
           <label class="form-label">Mode of Payment</label>
           <select class="form-select" formControlName="paymentMode">
             <option value="">Select</option>
@@ -31,17 +31,17 @@
           </select>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-4 col-md-6">
           <label class="form-label">Description</label>
           <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-4 col-md-6">
           <label class="form-label">Hint By</label>
           <textarea type="text" class="form-control" cols="1" formControlName="hintBy" rows="2"></textarea>
         </div>
 
-        <div class="col-md-6" *ngIf="isAdmin">
+        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Deposited By</label>
           <select class="form-select" formControlName="depositedBy" (change)="onUserChange($event, 'depositedBy')">
             <option value="">Select Users</option>
@@ -51,7 +51,7 @@
           </select>
         </div>
 
-        <div class="col-md-6" *ngIf="isAdmin">
+        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Debited By</label>
           <select class="form-select" formControlName="debitedBy" (change)="onUserChange($event, 'debitedBy')">
             <option value="">Select Users</option>
@@ -61,17 +61,17 @@
           </select>
         </div>
 
-        <div class="col-md-6" *ngIf="isAdmin">
+        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Date</label>
           <input type="date" class="form-control" formControlName="date">
         </div>
 
-        <!-- <div class="col-md-6" *ngIf="isAdmin">
+        <!-- <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Approved By</label>
           <input type="text" class="form-control" formControlName="approvedBy">
         </div> -->
 
-        <div class="col-md-6" *ngIf="isAdmin">
+        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
           <label class="form-label">Status</label>
           <select class="form-select" formControlName="status">
             <option value="">Select</option>

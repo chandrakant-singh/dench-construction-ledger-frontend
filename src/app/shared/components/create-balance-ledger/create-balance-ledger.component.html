@@ -1,1 +1,109 @@
-<p>create-balance-ledger works!</p>
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    {{ existingLedger ? 'Update' : 'Create New' }} Stock Ledger Entry
+  </div>
+  <div class="card-body">
+    <form [formGroup]="balanceLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
+      <!-- Main Category -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Select Item</label>
+        <div class="d-flex">
+          <select class="form-select" formControlName="itemId" (change)="onMainCategoryChange($event)">
+            <option value="">Select Item</option>
+            <option *ngFor="let item of items" [value]="item.id">{{ item.name }}</option>
+          </select>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('item')">+</button>
+        </div>
+
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('itemId')?.touched && balanceLedgerForm.get('itemId')?.invalid">
+          Item is required
+        </div>
+      </div>
+
+      <!-- Quantity -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Quantity</label>
+        <input type="number" class="form-control" formControlName="quantity" (input)="calculateAmount()">
+      </div>
+
+      <!-- Rate -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Rate</label>
+        <input type="number" class="form-control" formControlName="rate" (input)="calculateAmount()">
+      </div>
+
+      <!-- Amount -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-control" formControlName="amount">
+      </div>
+
+      <!-- Credit -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label">Credit</label>
+        <input type="number" class="form-control" formControlName="credit" (input)="calculateBalance()">
+      </div>
+
+      <!-- Balance (disabled) -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label">Balance</label>
+        <input type="number" class="form-control" formControlName="balance">
+      </div>
+
+      <!-- Date -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Date</label>
+        <input type="date" class="form-control" formControlName="date">
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('date')?.touched && balanceLedgerForm.get('date')?.invalid">
+          Date is required
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label">Description</label>
+        <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
+      </div>
+
+      <div class="col-12 text-end">
+        <app-loading-button
+          [btnClass]="'btn btn-primary btn-sm'"
+          [isLoading]="isLoading"
+          [btnDisable]="balanceLedgerForm.invalid"
+          [label]="(existingLedger ? 'Update' : 'Create')" [type]="'submit'">
+        </app-loading-button>
+        <button type="submit" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
+      </div>
+
+      <!-- <div class="text-danger" *ngIf="balanceLedgerForm.errors?.['creditOrQuantityFieldsRequired']">
+        Either Credit or (Quantity, Rate, Amount) fields must be filled.
+      </div> -->
+    </form>
+  </div>
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+  </div>
+</ng-template>
+
+<!-- The reusable modal -->
+<app-dialog
+  [title]="dialogTitle"
+  [contentTemplate]="dialogTemplate"
+  [confirmText]="'Save'"
+  [cancelText]="'Close'"
+  (confirmEvent)="handleDialogConfirm($event)">
+</app-dialog>
+
+<!-- Template passed to modal for creating main category -->
+<ng-template #createItem>
+  <form [formGroup]="itemForm">
+    <div class="mb-3">
+      <label class="form-label">Balance Ledger Item</label>
+      <input class="form-control" formControlName="itemName" placeholder="Enter Item Name" />
+    </div>
+  </form>
+</ng-template>

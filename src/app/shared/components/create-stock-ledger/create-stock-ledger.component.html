@@ -5,7 +5,7 @@
   <div class="card-body">
     <form [formGroup]="stockLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
       <!-- Main Category -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Main Category</label>
         <div class="d-flex">
           <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
@@ -22,7 +22,7 @@
       </div>
 
       <!-- Sub Category -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Sub Category</label>
         <div class="d-flex">
           <select class="form-select" formControlName="subCategory">
@@ -38,25 +38,25 @@
       </div>
 
       <!-- Stock In -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock In</label>
         <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()">
       </div>
 
       <!-- Stock Out -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock Out</label>
         <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()">
       </div>
 
       <!-- Balance (disabled) -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Balance</label>
         <input type="number" class="form-control" formControlName="balance">
       </div>
 
       <!-- Date -->
-      <div class="col-md-4">
+      <div class="col-lg-4 col-md-6">
         <label class="form-label">Date</label>
         <input type="date" class="form-control" formControlName="date">
         <div class="invalid-feedback"
@@ -64,6 +64,11 @@
           Date is required
         </div>
       </div>
+
+      <div class="col-lg-4 col-md-6">
+          <label class="form-label">Description</label>
+          <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
+        </div>
 
       <div class="col-12 text-end">
         <app-loading-button [btnClass]="'btn btn-primary btn-sm'" [isLoading]="isLoading"
@@ -96,7 +101,7 @@
 <ng-template #createMainCategory>
   <form [formGroup]="mainCategoryForm">
     <div class="mb-3">
-      <label>Main Category</label>
+      <label class="form-label">Category</label>
       <input class="form-control" formControlName="category" placeholder="Enter Main Category" />
     </div>
   </form>
@@ -106,7 +111,7 @@
 <ng-template #createSubCategory>
   <form [formGroup]="subCategoryForm">
     <div class="mb-3">
-      <label class="form-label">Sub Category</label>
+      <label class="form-label">Category</label>
       <div class="d-flex">
         <select class="form-select" formControlName="category">
           <option value="">Select Category</option>
@@ -115,7 +120,7 @@
       </div>
     </div>
     <div class="mb-3">
-      <label>Sub Category</label>
+      <label class="form-label">Sub Category</label>
       <input class="form-control" formControlName="subCategory" placeholder="Enter Sub Category" />
     </div>
   </form>

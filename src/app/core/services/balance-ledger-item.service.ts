@@ -16,27 +16,25 @@ import {
 import { from, Observable, map } from 'rxjs';
 import { limit, orderBy } from 'firebase/firestore';
 
-import { StoreLedgerCategory } from '../models/stock-ledger-category.model';
+import { BalanceLedgerItem } from '../models/balance-ledger';
 import { StorageUtils } from '../utils/storage.utils';
-
 @Injectable({
   providedIn: 'root'
 })
-export class StockLedgerCategoryService {
-
+export class BalanceLedgerItemService {
   private collectionRef: CollectionReference<DocumentData>;
 
   constructor(
     private firestore: Firestore,
   ) {
-    this.collectionRef = collection(this.firestore, 'category');
+    this.collectionRef = collection(this.firestore, 'balance-ledger-item');
   }
 
-  // ➕ Create a new category entry
-  public createCategory(category: StoreLedgerCategory): Observable<string> {
+  // ➕ Create
+  public create(item: BalanceLedgerItem): Observable<string> {
     const timestamp = new Date();
-    const data: StoreLedgerCategory = {
-      ...category,
+    const data: BalanceLedgerItem = {
+      ...item,
       createdAt: timestamp,
       updatedAt: timestamp,
       createdByName: StorageUtils.getUserName()
@@ -46,23 +44,23 @@ export class StockLedgerCategoryService {
     );
   }
 
-  // 📝 Update existing category
-  public updateCategory(id: string | undefined, updates: Partial<StoreLedgerCategory>): Observable<void> {
-    const docRef = doc(this.firestore, `category/${id}`);
+  // 📝 Update
+  public update(id: string | undefined, updates: Partial<BalanceLedgerItem>): Observable<void> {
+    const docRef = doc(this.firestore, `balance-ledger-item/${id}`);
     return from(updateDoc(docRef, {
       ...updates,
       updatedAt: new Date()
     }));
   }
 
-  // ❌ Delete category
-  public deleteLedger(id: string): Observable<void> {
-    const docRef = doc(this.firestore, `category/${id}`);
+  // ❌ Delete
+  public delete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `balance-ledger-item/${id}`);
     return from(deleteDoc(docRef));
   }
 
-  // 📄 Get all StoreLedgerCategory (optionally filter by user or date)
-  public getCategories(createdBy?: string, date?: string): Observable<StoreLedgerCategory[]> {
+  // 📄 Get all
+  public getAll(createdBy?: string, date?: string): Observable<BalanceLedgerItem[]> {
     let q = query(this.collectionRef);
 
     if (createdBy) {
@@ -79,28 +77,30 @@ export class StockLedgerCategoryService {
       map(snapshot =>
         snapshot.docs.map(doc => ({
           id: doc.id,
-          ...(doc.data() as StoreLedgerCategory)
+          ...(doc.data() as BalanceLedgerItem)
         }))
       )
     );
   }
 
-  async getCategoryById(id: string): Promise<any> {
-    const docRef = doc(this.firestore, `category/${id}`);
+  // 📄 Get One
+  async getOneById(id: string): Promise<any> {
+    const docRef = doc(this.firestore, `balance-ledger-item/${id}`);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      return docSnap.data() as StoreLedgerCategory;
+      return docSnap.data() as BalanceLedgerItem;
     }
   }
 
-  public getLatestEntry(): Observable<StoreLedgerCategory | null> {
+  // 📄 Get latest one
+  public getLatestEntry(): Observable<BalanceLedgerItem | null> {
     const q = query(this.collectionRef, orderBy('createdAt', 'desc'), limit(1));
     return from(getDocs(q)).pipe(
       map(snapshot => {
         if (snapshot.empty) return null;
         const doc = snapshot.docs[0];
-        return { id: doc.id, ...(doc.data() as StoreLedgerCategory) };
+        return { id: doc.id, ...(doc.data() as BalanceLedgerItem) };
       })
     );
   }

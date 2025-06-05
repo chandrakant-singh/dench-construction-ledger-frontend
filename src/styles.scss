@@ -5,3 +5,9 @@
   line-height: 1.2 !important;
   border-radius: 0.2rem !important;
 }
+
+
+label.required::after {
+  content: ' *';
+  color: red;
+}

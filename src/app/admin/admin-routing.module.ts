@@ -29,6 +29,10 @@ const routes: Routes = [
         loadComponent: () => import('../shared/components/create-stock-ledger/create-stock-ledger.component').then((m) => m.CreateStockLedgerComponent)
       },
       {
+        path: 'create-balance-ledger',
+        loadComponent: () => import('../shared/components/create-balance-ledger/create-balance-ledger.component').then((m) => m.CreateBalanceLedgerComponent)
+      },
+      {
         path: 'list-supervisor',
         loadComponent: () => import('./list-supervisor/list-supervisor.component').then((m) => m.ListSupervisorComponent)
       },

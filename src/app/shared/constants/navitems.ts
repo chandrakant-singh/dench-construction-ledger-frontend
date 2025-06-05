@@ -11,16 +11,6 @@ export const NAV_ITEMS = [
     roles: ['admin']
   },
   {
-    label: 'Create Supervisor',
-    path: '/admin/create-supervisor',
-    roles: ['admin']
-  },
-  {
-    label: 'List Supervisor',
-    path: '/admin/list-supervisor',
-    roles: ['admin']
-  },
-  {
     label: 'List Stock Ledger',
     path: '/admin/list-stock-ledger',
     roles: ['admin']
@@ -28,6 +18,16 @@ export const NAV_ITEMS = [
   {
     label: 'List Balance Ledger',
     path: '/admin/list-balance-ledger',
+    roles: ['admin']
+  },
+  {
+    label: 'Create Supervisor',
+    path: '/admin/create-supervisor',
+    roles: ['admin']
+  },
+  {
+    label: 'List Supervisor',
+    path: '/admin/list-supervisor',
     roles: ['admin']
   },
 

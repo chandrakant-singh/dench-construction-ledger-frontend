@@ -1,11 +1,13 @@
 export interface StockLedgerEntry {
-  id?: string;              // Firestore doc ID
+  id?: string;
+  mainCategory: string;
+  subCategory: string;
   stockIn: number;
   stockOut: number;
   balance: number;
   description: string;
-  date: string;             // YYYY-MM-DD
-  createdBy: string;        // Firestore doc ID
+  date: string;
+  createdBy: string;
   updatedBy: string;
   createdAt: Date;
   updatedAt: Date;

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -23,7 +23,6 @@ declare var bootstrap: any;
   styleUrl: './create-stock-ledger.component.scss'
 })
 export class CreateStockLedgerComponent {
-  @ViewChild('reusableModal') modalRef!: ElementRef;
   @ViewChild('createMainCategory') createMainCategoryTemplate!: TemplateRef<any>;
   @ViewChild('createSubCategory') createSubCategoryTemplate!: TemplateRef<any>;
   dialogTemplate!: TemplateRef<any>;
@@ -59,10 +58,6 @@ export class CreateStockLedgerComponent {
     //Add 'implements OnInit' to the class.
     this.initializeFormData();
     this.getCategories();
-  }
-
-  ngAfterViewInit() {
-    // this.modalRef.nativeElement.classList.add('show');
   }
 
   createLedgerEntry() {
@@ -210,14 +205,6 @@ export class CreateStockLedgerComponent {
     modal.show();
   }
 
-  // handleDialogConfirm(_: any) {
-  //   if (this.dialogType === 'main') {
-  //     this.confirmMainCategory();
-  //   } else if (this.dialogType === 'sub') {
-  //     this.confirmSubCategory();
-  //   }
-  // }
-
   confirmMainCategory() {
     const newCategory = this.mainCategoryForm.get('category')?.value;
     // Save logic
@@ -290,8 +277,8 @@ export class CreateStockLedgerComponent {
   private handleFormValidation() {
     // For existing ledger
     if (this.existingLedger) {
-      this.stockLedgerForm.get('credit')?.disable();
-      this.stockLedgerForm.get('debit')?.disable();
+      this.stockLedgerForm.get('stockIn')?.disable();
+      this.stockLedgerForm.get('stockOut')?.disable();
     }
 
     this.stockLedgerForm.updateValueAndValidity();
@@ -342,6 +329,7 @@ export class CreateStockLedgerComponent {
       stockOut: [0],
       balance: [{ value: 0, disabled: true }],
       date: [DateUtils.getTodayDate()],
+      description: [''],
     }, { validators: creditOrDebitRequired('stockIn', 'stockOut') });
   }
 

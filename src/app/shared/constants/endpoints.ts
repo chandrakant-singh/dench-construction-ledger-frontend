@@ -8,6 +8,7 @@ export enum EndPoints {
   CREATE_SUPERVISOR = 'admin/create-supervisor',
   CREATE_LEDGER_ENTRY = 'admin/create-ledger-entry',
   CREATE_STOCK_LEDGER = 'admin/create-stock-ledger',
+  CREATE_BALANCE_LEDGER = 'admin/create-balance-ledger',
 
   LIST_SUPERVISOR = 'admin/list-supervisor',
   LIST_STOCK_LEDGER = 'admin/list-stock-ledger',

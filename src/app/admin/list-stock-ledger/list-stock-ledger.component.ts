@@ -1,17 +1,18 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
 import { EndPoints } from '../../shared/constants/endpoints';
 import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-list-stock-ledger',
-  imports: [CommonModule, NgxDatatableComponent],
+  imports: [CommonModule, FormsModule, NgxDatatableComponent],
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
 })
@@ -25,12 +26,12 @@ export class ListStockLedgerComponent {
   ledgerData = [];
 
   ledgerColumns = [
+    { name: 'Date', prop: 'date' },
     { name: 'Category', prop: 'mainCategory' },
     { name: 'Sub Category', prop: 'subCategory' },
     { name: 'Stock In', prop: 'stockIn' },
     { name: 'Stock Out', prop: 'stockOut' },
     { name: 'Balance', prop: 'balance' },
-    { name: 'Date', prop: 'date' }
   ];
 
   constructor(
@@ -81,9 +82,11 @@ export class ListStockLedgerComponent {
   exportToExcel(): void {
     const exportData = this.filteredRows.map(row => ({
       'Date': row.date,
-      'Balance': row.balance,
+      'Category': row.mainCategory,
+      'Sub Category': row.subCategory,
       'Credit': row.stockIn,
       'Debit': row.stockOut,
+      'Balance': row.balance,
       'Description': row.description,
     }));
 
@@ -103,7 +106,6 @@ export class ListStockLedgerComponent {
         next: (ledgerEntries: any) => {
           this.rows = ledgerEntries;
           this.filteredRows = ledgerEntries;
-          // this.filterRows();
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
         },
