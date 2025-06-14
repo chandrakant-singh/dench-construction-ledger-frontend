@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output, } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LedgerService } from '../../../core/services/ledger.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,6 +19,8 @@ import { forkJoin } from 'rxjs';
   styleUrl: './create-ledger-entry.component.scss'
 })
 export class CreateLedgerEntryComponent {
+  @Output() closeLedgerForm = new EventEmitter<boolean>();
+
   ledgerForm!: FormGroup;
   appUser!: AppUser;
   existingLedger: LedgerEntry | null = null;
@@ -40,7 +42,12 @@ export class CreateLedgerEntryComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
-    this.initializeFormData();
+    this.route.queryParams.subscribe(params => {
+      this.isLoading = true;
+      this.resetAllTheForms();
+      this.existingLedger = null;
+      this.initializeFormData();
+    });
   }
 
   private initializeFormData() {
@@ -195,16 +202,20 @@ export class CreateLedgerEntryComponent {
     if (this.existingLedger) {
       this.ledgerForm.get('credit')?.disable();
       this.ledgerForm.get('debit')?.disable();
+    } else {
+      this.ledgerForm.get('credit')?.enable();
+      this.ledgerForm.get('debit')?.enable();
     }
 
     this.ledgerForm.updateValueAndValidity();
   }
 
   private checkAndRedirect() {
-    const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
-    if (redirectUrl) {
-      this.router.navigate([redirectUrl]);
-    }
+    // const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
+    // if (redirectUrl) {
+    //   this.router.navigate([redirectUrl]);
+    // }
+    this.closeLedgerForm.emit(true);
   }
 
   private getLedgerIdFromUrlAndPatchForm() {
@@ -216,10 +227,17 @@ export class CreateLedgerEntryComponent {
           this.existingLedger = ledgerEntry;
           this.ledgerForm.patchValue(ledgerEntry);
           this.handleFormValidation();
+          this.isLoading = false;
         })
         .catch((error) => {
           console.log("======= ERROR ========", error);
         })
+        .finally(() => {
+          this.isLoading = false;
+        })
+    } else {
+      this.existingLedger = null;
+      this.isLoading = false;
     }
   }
 
@@ -249,5 +267,9 @@ export class CreateLedgerEntryComponent {
 
     const newBalance = runningBalance + credit - debit;
     this.ledgerForm.patchValue({ balance: newBalance });
+  }
+
+  private resetAllTheForms() {
+    this.initializeForm();
   }
 }

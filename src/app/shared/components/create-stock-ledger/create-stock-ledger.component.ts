@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Output, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -25,6 +25,9 @@ declare var bootstrap: any;
 export class CreateStockLedgerComponent {
   @ViewChild('createMainCategory') createMainCategoryTemplate!: TemplateRef<any>;
   @ViewChild('createSubCategory') createSubCategoryTemplate!: TemplateRef<any>;
+
+  @Output() closeLedgerForm = new EventEmitter<boolean>();
+
   dialogTemplate!: TemplateRef<any>;
   dialogTitle: string = '';
   dialogType: 'main' | 'sub' | null = null;
@@ -56,8 +59,13 @@ export class CreateStockLedgerComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
-    this.initializeFormData();
-    this.getCategories();
+    this.route.queryParams.subscribe(params => {
+      this.isLoading = true;
+      this.resetAllTheForms();
+      this.existingLedger = null;
+      this.getCategories();
+      this.initializeFormData();
+    });
   }
 
   createLedgerEntry() {
@@ -154,6 +162,7 @@ export class CreateStockLedgerComponent {
       next: (categories) => {
         console.log('Categories:', categories);
         this.existingStockLedgerCategory = categories[0];
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error getting categories:', error);
@@ -197,7 +206,7 @@ export class CreateStockLedgerComponent {
       this.dialogTitle = 'Add Main Category';
     } else {
       this.dialogTemplate = this.createSubCategoryTemplate;
-      this.dialogTitle = 'Add Sub Category';
+      this.dialogTitle = 'Add Party';
     }
 
     // Manually trigger modal open if required
@@ -206,6 +215,8 @@ export class CreateStockLedgerComponent {
   }
 
   confirmMainCategory() {
+    if (this.mainCategoryForm.invalid) return;
+
     const newCategory = this.mainCategoryForm.get('category')?.value;
     // Save logic
     console.log('Saving Main Category:', newCategory);
@@ -219,6 +230,8 @@ export class CreateStockLedgerComponent {
   }
 
   confirmSubCategory() {
+    if (this.mainCategoryForm.invalid) return;
+
     const newSubCategory = this.subCategoryForm.get('subCategory')?.value;
     const newCategory = this.subCategoryForm.get('category')?.value;
     // Save logic
@@ -259,6 +272,7 @@ export class CreateStockLedgerComponent {
   }
 
   private getLedgerIdFromUrlAndPatchForm() {
+    console.log(" ================= ", this.route.snapshot.queryParams['id'], " ================= ")
     this.ledgerId = this.route.snapshot.queryParams['id'];
     if (this.ledgerId) {
       this.stockLedgerService.getLedgerEntryById(this.ledgerId)
@@ -271,6 +285,8 @@ export class CreateStockLedgerComponent {
         .catch((error) => {
           console.log("======= ERROR ========", error);
         })
+    } else {
+      this.existingLedger = null;
     }
   }
 
@@ -279,6 +295,9 @@ export class CreateStockLedgerComponent {
     if (this.existingLedger) {
       this.stockLedgerForm.get('stockIn')?.disable();
       this.stockLedgerForm.get('stockOut')?.disable();
+    } else {
+      this.stockLedgerForm.get('stockIn')?.enable();
+      this.stockLedgerForm.get('stockOut')?.enable();
     }
 
     this.stockLedgerForm.updateValueAndValidity();
@@ -315,18 +334,19 @@ export class CreateStockLedgerComponent {
   }
 
   private checkAndRedirect() {
-    const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
-    if (redirectUrl) {
-      this.router.navigate([redirectUrl]);
-    }
+    // const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
+    // if (redirectUrl) {
+    //   this.router.navigate([redirectUrl]);
+    // }
+    this.closeLedgerForm.emit(true);
   }
 
   private initializeForm() {
     this.stockLedgerForm = this.fb.group({
-      mainCategory: ['', Validators.required],
-      subCategory: ['', Validators.required],
-      stockIn: [0],
-      stockOut: [0],
+      mainCategory: [null, Validators.required],
+      subCategory: [null, Validators.required],
+      stockIn: [''],
+      stockOut: [''],
       balance: [{ value: 0, disabled: true }],
       date: [DateUtils.getTodayDate()],
       description: [''],
@@ -355,5 +375,11 @@ export class CreateStockLedgerComponent {
 
     const newBalance = runningBalance + credit - debit;
     this.stockLedgerForm.patchValue({ balance: newBalance });
+  }
+
+  private resetAllTheForms() {
+    this.initializeForm();
+    this.initializeMainCategoryForm();
+    this.initializeSubCategoryForm();
   }
 }

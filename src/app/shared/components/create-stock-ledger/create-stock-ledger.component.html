@@ -2,17 +2,17 @@
   <div class="card-header bg-primary text-white">
     {{ existingLedger ? 'Update' : 'Create New' }} Stock Ledger Entry
   </div>
-  <div class="card-body">
+  <div class="card-body" *ngIf="!isLoading; else loadingTemplate">
     <form [formGroup]="stockLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
       <!-- Main Category -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Main Category</label>
         <div class="d-flex">
           <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
-            <option value="">Select Category</option>
+            <option value=null>Select Category</option>
             <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
           </select>
-          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('main')">+</button>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('main')" type="button">+</button>
         </div>
 
         <div class="invalid-feedback"
@@ -23,13 +23,13 @@
 
       <!-- Sub Category -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label">Sub Category</label>
+        <label class="form-label">Party</label>
         <div class="d-flex">
           <select class="form-select" formControlName="subCategory">
-            <option value="">Select Subcategory</option>
+            <option value=null>Select Subcategory</option>
             <option *ngFor="let sub of mainSubCategories" [value]="sub">{{ sub }}</option>
           </select>
-          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('sub')">+</button>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('sub')" type="button">+</button>
         </div>
         <div class="invalid-feedback"
           *ngIf="stockLedgerForm.get('subCategory')?.touched && stockLedgerForm.get('subCategory')?.invalid">
@@ -40,13 +40,13 @@
       <!-- Stock In -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock In</label>
-        <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()">
+        <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()" placeholder="Enter Stock In">
       </div>
 
       <!-- Stock Out -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock Out</label>
-        <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()">
+        <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()" placeholder="Enter Stock Out">
       </div>
 
       <!-- Balance (disabled) -->
@@ -74,7 +74,7 @@
         <app-loading-button [btnClass]="'btn btn-primary btn-sm'" [isLoading]="isLoading"
           [btnDisable]="stockLedgerForm.invalid" [label]="(existingLedger ? 'Update' : 'Create')" [type]="'submit'">
         </app-loading-button>
-        <button type="submit" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
       </div>
 
     </form>
@@ -114,14 +114,14 @@
       <label class="form-label">Category</label>
       <div class="d-flex">
         <select class="form-select" formControlName="category">
-          <option value="">Select Category</option>
+          <option value=null>Select Category</option>
           <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
         </select>
       </div>
     </div>
     <div class="mb-3">
-      <label class="form-label">Sub Category</label>
-      <input class="form-control" formControlName="subCategory" placeholder="Enter Sub Category" />
+      <label class="form-label">Party</label>
+      <input class="form-control" formControlName="subCategory" placeholder="Enter Party" />
     </div>
   </form>
 </ng-template>

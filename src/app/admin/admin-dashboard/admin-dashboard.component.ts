@@ -3,7 +3,7 @@ import { UserService } from '../../core/services/user.service';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 
@@ -11,10 +11,11 @@ import { EndPoints } from '../../shared/constants/endpoints';
 import { LedgerService } from '../../core/services/ledger.service';
 import { LedgerEntry, LedgerEntryReq } from '../../core/models/ledger.model';
 import { StorageUtils } from '../../core/utils/storage.utils';
+import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule, FormsModule, NgxDatatableModule],
+  imports: [CommonModule, FormsModule, NgxDatatableModule, CreateLedgerEntryComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
 })
@@ -25,6 +26,8 @@ export class AdminDashboardComponent {
   @ViewChild('actionTpl', { static: true }) actionTpl!: TemplateRef<any>;
 
   rows: Array<LedgerEntry> = [];
+  showLedgerForm: boolean = false;
+
   private searchTimeout: any;
   lastLedger: LedgerEntry | null = null;
 
@@ -33,6 +36,7 @@ export class AdminDashboardComponent {
   constructor(
     private readonly userService: UserService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly ledgerService: LedgerService,
     private cdr: ChangeDetectorRef
   ) {
@@ -42,6 +46,10 @@ export class AdminDashboardComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
+    this.initializeComponent();
+  }
+
+  private initializeComponent() {
     this.columns = [
       { name: 'Balance', prop: 'balance' },
       { name: 'Debit', prop: 'debit' },
@@ -65,6 +73,7 @@ export class AdminDashboardComponent {
         sortable: false
       },
     ];
+
     this.getLedgerEntries();
     this.getLastStockLedger();
   }
@@ -89,13 +98,17 @@ export class AdminDashboardComponent {
   }
 
   createEntry() {
-    this.router.navigate([EndPoints.CREATE_LEDGER_ENTRY], { queryParams: { redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.ADMIN_DASHBOARD], { queryParams: { mode: 'create' } });
+    this.showHideCreateAndUpdateForm();
   }
 
   onEdit(row: any) {
     console.log('Editing row:', row);
     // Implement edit logic here (maybe open a modal)
-    this.router.navigate([EndPoints.CREATE_LEDGER_ENTRY], { queryParams: { id: row.id, redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.ADMIN_DASHBOARD], { queryParams: { mode: 'update', id: row.id } });
+    this.showHideCreateAndUpdateForm();
   }
 
   onDelete(row: any) {
@@ -103,6 +116,15 @@ export class AdminDashboardComponent {
     if (confirmDelete) {
       console.log('Deleting row:', row);
       // Remove from Firebase or local array
+    }
+  }
+
+  closeLedgerForm(event: boolean) {
+    console.log(event);
+    if(event) {
+      this.showLedgerForm = false;
+      this.router.navigate([EndPoints.ADMIN_DASHBOARD]);
+      this.initializeComponent();
     }
   }
 
@@ -175,5 +197,17 @@ export class AdminDashboardComponent {
         }
       }
     );
+  }
+
+  private showHideCreateAndUpdateForm() {
+    this.route.queryParams.subscribe(params => {
+      console.log("1 Query Params", params);
+      const {mode, id} = params;
+      if(mode === 'update' || mode === 'create') {
+        this.showLedgerForm = true;
+      } else {
+        this.showLedgerForm = false;
+      }
+    });
   }
 }

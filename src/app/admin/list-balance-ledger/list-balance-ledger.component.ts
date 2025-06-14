@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 import { CommonModule } from '@angular/common';
@@ -9,10 +9,11 @@ import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx
 import { EndPoints } from '../../shared/constants/endpoints';
 import { BalanceLedgerEntry } from '../../core/models/balance-ledger';
 import { BalanceLedgerService } from '../../core/services/balance-ledger.service';
+import { CreateBalanceLedgerComponent } from '../../shared/components/create-balance-ledger/create-balance-ledger.component';
 
 @Component({
   selector: 'app-list-balance-ledger',
-  imports: [CommonModule, FormsModule, NgxDatatableComponent],
+  imports: [CommonModule, FormsModule, NgxDatatableComponent, CreateBalanceLedgerComponent],
   templateUrl: './list-balance-ledger.component.html',
   styleUrl: './list-balance-ledger.component.scss'
 })
@@ -24,6 +25,7 @@ export class ListBalanceLedgerComponent {
   rows: Array<BalanceLedgerEntry> = [];
 
   ledgerData = [];
+  showLedgerForm: boolean = false;
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
@@ -38,6 +40,7 @@ export class ListBalanceLedgerComponent {
 
   constructor(
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly balanceLedgerService: BalanceLedgerService,
     private cdr: ChangeDetectorRef
   ) { }
@@ -45,6 +48,10 @@ export class ListBalanceLedgerComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
+    this.initializeComponent();
+  }
+
+  private initializeComponent() {
     this.getLedgerEntries();
     this.getLastBalanceLedger();
   }
@@ -69,7 +76,9 @@ export class ListBalanceLedgerComponent {
   }
 
   onEditLedger(row: any) {
-    this.router.navigate([EndPoints.CREATE_BALANCE_LEDGER], { queryParams: { id: row.id, redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.LIST_BALANCE_LEDGER], { queryParams: { mode: 'update', id: row.id } });
+    this.showHideCreateAndUpdateForm();
   }
 
   onDeleteLedger(row: any) {
@@ -77,7 +86,9 @@ export class ListBalanceLedgerComponent {
   }
 
   createEntry() {
-    this.router.navigate([EndPoints.CREATE_BALANCE_LEDGER], { queryParams: { redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.LIST_BALANCE_LEDGER], { queryParams: { mode: 'create' } });
+    this.showHideCreateAndUpdateForm();
   }
 
   exportToExcel(): void {
@@ -99,6 +110,15 @@ export class ListBalanceLedgerComponent {
 
     const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     FileSaver.saveAs(data, fileName);
+  }
+
+  closeLedgerForm(event: boolean) {
+    console.log(event);
+    if(event) {
+      this.showLedgerForm = false;
+      this.router.navigate([EndPoints.LIST_BALANCE_LEDGER]);
+      this.initializeComponent();
+    }
   }
 
   private getLedgerEntries() {
@@ -128,5 +148,17 @@ export class ListBalanceLedgerComponent {
         }
       }
     );
+  }
+
+  private showHideCreateAndUpdateForm() {
+    this.route.queryParams.subscribe(params => {
+      console.log("1 Query Params", params);
+      const {mode, id} = params;
+      if(mode === 'update' || mode === 'create') {
+        this.showLedgerForm = true;
+      } else {
+        this.showLedgerForm = false;
+      }
+    });
   }
 }

@@ -28,3 +28,9 @@
     <div class="spinner-border" role="status" aria-hidden="true"></div>
   </div>
 </ng-template>
+
+<ng-container *ngIf="showLedgerForm">
+  <app-create-balance-ledger
+    (closeLedgerForm)="closeLedgerForm($event)"
+  ></app-create-balance-ledger>
+</ng-container>

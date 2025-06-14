@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 import { CommonModule } from '@angular/common';
@@ -9,10 +9,11 @@ import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx
 import { EndPoints } from '../../shared/constants/endpoints';
 import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
+import { CreateStockLedgerComponent } from "../../shared/components/create-stock-ledger/create-stock-ledger.component";
 
 @Component({
   selector: 'app-list-stock-ledger',
-  imports: [CommonModule, FormsModule, NgxDatatableComponent],
+  imports: [CommonModule, FormsModule, NgxDatatableComponent, CreateStockLedgerComponent],
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
 })
@@ -24,11 +25,12 @@ export class ListStockLedgerComponent {
   rows: Array<StockLedgerEntry> = [];
 
   ledgerData = [];
+  showLedgerForm: boolean = false;
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
     { name: 'Category', prop: 'mainCategory' },
-    { name: 'Sub Category', prop: 'subCategory' },
+    { name: 'Party', prop: 'subCategory' },
     { name: 'Stock In', prop: 'stockIn' },
     { name: 'Stock Out', prop: 'stockOut' },
     { name: 'Balance', prop: 'balance' },
@@ -36,6 +38,7 @@ export class ListStockLedgerComponent {
 
   constructor(
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly stockLedgerService: StockLedgerService,
     private cdr: ChangeDetectorRef
   ) { }
@@ -43,8 +46,13 @@ export class ListStockLedgerComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
+    this.initializeComponent();
+  }
+
+  private initializeComponent() {
     this.getLedgerEntries();
     this.getLastStockLedger();
+    this.showHideCreateAndUpdateForm();
   }
 
   onSearchInputChange() {
@@ -67,7 +75,9 @@ export class ListStockLedgerComponent {
   }
 
   onEditLedger(row: any) {
-    this.router.navigate([EndPoints.CREATE_STOCK_LEDGER], { queryParams: { id: row.id, redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.LIST_STOCK_LEDGER], { queryParams: { mode: 'update', id: row.id } });
+    this.showHideCreateAndUpdateForm();
   }
 
   onDeleteLedger(row: any) {
@@ -76,14 +86,16 @@ export class ListStockLedgerComponent {
 
   createEntry() {
     console.log('Create Entry');
-    this.router.navigate([EndPoints.CREATE_STOCK_LEDGER], { queryParams: { redirect: this.router.url } });
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.LIST_STOCK_LEDGER], { queryParams: { mode: 'create' } });
+    this.showHideCreateAndUpdateForm();
   }
 
   exportToExcel(): void {
     const exportData = this.filteredRows.map(row => ({
       'Date': row.date,
       'Category': row.mainCategory,
-      'Sub Category': row.subCategory,
+      'Party': row.subCategory,
       'Credit': row.stockIn,
       'Debit': row.stockOut,
       'Balance': row.balance,
@@ -98,6 +110,15 @@ export class ListStockLedgerComponent {
 
     const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     FileSaver.saveAs(data, fileName);
+  }
+
+  closeLedgerForm(event: boolean) {
+    console.log(event);
+    if(event) {
+      this.showLedgerForm = false;
+      this.router.navigate([EndPoints.LIST_STOCK_LEDGER]);
+      this.initializeComponent();
+    }
   }
 
   private getLedgerEntries() {
@@ -127,5 +148,17 @@ export class ListStockLedgerComponent {
         }
       }
     );
+  }
+
+  private showHideCreateAndUpdateForm() {
+    this.route.queryParams.subscribe(params => {
+      console.log("1 Query Params", params);
+      const {mode, id} = params;
+      if(mode === 'update' || mode === 'create') {
+        this.showLedgerForm = true;
+      } else {
+        this.showLedgerForm = false;
+      }
+    });
   }
 }

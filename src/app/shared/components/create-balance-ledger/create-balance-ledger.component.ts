@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild, EventEmitter, Output, } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -23,6 +23,8 @@ declare var bootstrap: any;
 })
 export class CreateBalanceLedgerComponent {
   @ViewChild('createItem') createItemTemplate!: TemplateRef<any>;
+  @Output() closeLedgerForm = new EventEmitter<boolean>();
+
   dialogTemplate!: TemplateRef<any>;
   dialogTitle: string = '';
   dialogType: 'item' | null = null;
@@ -52,8 +54,13 @@ export class CreateBalanceLedgerComponent {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
-    this.initializeFormData();
-    this.getItems();
+    this.route.queryParams.subscribe(params => {
+      this.isLoading = true;
+      this.resetAllTheForms();
+      this.existingLedger = null;
+      this.initializeFormData();
+      this.getItems();
+    });
   }
 
   createLedgerEntry() {
@@ -219,6 +226,8 @@ export class CreateBalanceLedgerComponent {
         .catch((error) => {
           console.log("======= ERROR ========", error);
         })
+    } else {
+      this.existingLedger = null;
     }
   }
 
@@ -228,6 +237,10 @@ export class CreateBalanceLedgerComponent {
       this.balanceLedgerForm.get('rate')?.disable();
       this.balanceLedgerForm.get('quantity')?.disable();
       this.balanceLedgerForm.get('credit')?.disable();
+    } else {
+      this.balanceLedgerForm.get('rate')?.enable();
+      this.balanceLedgerForm.get('quantity')?.enable();
+      this.balanceLedgerForm.get('credit')?.enable();
     }
 
     this.balanceLedgerForm.updateValueAndValidity();
@@ -279,10 +292,11 @@ export class CreateBalanceLedgerComponent {
   }
 
   private checkAndRedirect() {
-    const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
-    if (redirectUrl) {
-      this.router.navigate([redirectUrl]);
-    }
+    // const redirectUrl = this.route.snapshot.queryParamMap.get('redirect')
+    // if (redirectUrl) {
+    //   this.router.navigate([redirectUrl]);
+    // }
+    this.closeLedgerForm.emit(true);
   }
 
   private initializeForm() {
@@ -314,5 +328,9 @@ export class CreateBalanceLedgerComponent {
 
     const newBalance = runningBalance + credit - debit;
     this.balanceLedgerForm.patchValue({ balance: newBalance });
+  }
+
+  private resetAllTheForms() {
+    this.initializeForm();
   }
 }

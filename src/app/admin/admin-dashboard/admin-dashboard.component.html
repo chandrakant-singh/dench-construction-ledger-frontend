@@ -10,13 +10,13 @@
 
 
   <div class="col-12" *ngIf="filteredRows.length; else loadingTemplate">
-    <div class="card">
+    <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Expenditure Ledger</strong>
         <strong class="text-muted">{{ `Balance:  ${this.lastLedger?.balance || 0}` }}</strong>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive vh-100" style="height: 500px; display: flex; flex-direction: column;">
+        <div class="table-responsive">
           <ngx-datatable
             class="bootstrap ledger-table"
             [rows]="filteredRows"
@@ -73,3 +73,9 @@
     <div class="spinner-border" role="status" aria-hidden="true"></div>
   </div>
 </ng-template>
+
+<ng-container *ngIf="showLedgerForm">
+  <app-create-ledger-entry
+    (closeLedgerForm)="closeLedgerForm($event)"
+  ></app-create-ledger-entry>
+</ng-container>

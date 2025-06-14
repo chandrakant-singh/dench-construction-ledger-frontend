@@ -2,7 +2,7 @@
   <div class="card-header bg-primary text-white">
     {{ existingLedger ? 'Update' : 'Create New' }} Balance Ledger Entry
   </div>
-  <div class="card-body">
+  <div class="card-body" *ngIf="!isLoading; else loadingTemplate">
     <form [formGroup]="balanceLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
       <!-- Main Category -->
       <div class="col-lg-4 col-md-6">
@@ -12,7 +12,7 @@
             <option value="">Select Item</option>
             <option *ngFor="let item of items" [value]="item.id">{{ item.name }}</option>
           </select>
-          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('item')">+</button>
+          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('item')" type="button">+</button>
         </div>
 
         <div class="invalid-feedback"
@@ -24,13 +24,13 @@
       <!-- Quantity -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label required">Quantity</label>
-        <input type="number" class="form-control" formControlName="quantity" (input)="calculateAmount()">
+        <input type="number" class="form-control" formControlName="quantity" (input)="calculateAmount()" placeholder="Enter Quantity">
       </div>
 
       <!-- Rate -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label required">Rate</label>
-        <input type="number" class="form-control" formControlName="rate" (input)="calculateAmount()">
+        <input type="number" class="form-control" formControlName="rate" (input)="calculateAmount()" placeholder="Enter Rate">
       </div>
 
       <!-- Amount -->
@@ -73,7 +73,7 @@
           [btnDisable]="balanceLedgerForm.invalid"
           [label]="(existingLedger ? 'Update' : 'Create')" [type]="'submit'">
         </app-loading-button>
-        <button type="submit" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
       </div>
 
       <!-- <div class="text-danger" *ngIf="balanceLedgerForm.errors?.['creditOrQuantityFieldsRequired']">
