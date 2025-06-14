@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import * as FileSaver from 'file-saver';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -103,13 +103,38 @@ export class ListStockLedgerComponent {
     }));
 
 
-    const fileName = `LedgerData-${new Date().toLocaleDateString()}.xlsx`;
+    const fileName = `Stock-Ledger-${new Date().toLocaleDateString()}.xlsx`;
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData); // or your data array
-    const workbook: XLSX.WorkBook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const range = XLSX.utils.decode_range(worksheet['!ref']!);
 
-    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    FileSaver.saveAs(data, fileName);
+      // Apply styling: Bold headers and borders for all cells
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          const cell = worksheet[cellAddress];
+          if (!cell) continue;
+
+          cell.s = {
+            font: R === 0 ? { bold: true } : {}, // Bold header row
+            border: {
+              top:    { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left:   { style: "thin", color: { rgb: "000000" } },
+              right:  { style: "thin", color: { rgb: "000000" } },
+            },
+          };
+        }
+      }
+
+      const workbook: XLSX.WorkBook = {
+        Sheets: { 'data': worksheet },
+        SheetNames: ['data']
+      };
+
+      const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+      const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      FileSaver.saveAs(data, fileName);
   }
 
   closeLedgerForm(event: boolean) {
