@@ -13,7 +13,7 @@
     <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
     <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
   </div>
-  <div class="col-12" *ngIf="filteredRows && ledgerData.length; else loadingTemplate">
+  <div class="col-12" *ngIf="(filteredRows && ledgerData.length) || !isLoading; else loadingTemplate">
     <app-ngx-datatable
       [rows]="filteredRows"
       [columns]="ledgerColumns"

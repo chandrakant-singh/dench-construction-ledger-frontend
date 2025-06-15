@@ -37,6 +37,8 @@ export class ListBalanceLedgerComponent {
   showLedgerForm: boolean = false;
   items: BalanceLedgerItem[] = [];
 
+  isLoading: boolean = false;
+
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
     { name: 'Item', prop: 'itemName' },
@@ -63,6 +65,7 @@ export class ListBalanceLedgerComponent {
   }
 
   private initializeComponent() {
+    this.isLoading = true;
     this.getLedgerEntries();
     this.getLastBalanceLedger();
     this.getCategories();
@@ -257,6 +260,7 @@ export class ListBalanceLedgerComponent {
       next: (items) => {
         console.log('Items:', items);
         this.items = items;
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error getting categories:', error);
@@ -274,6 +278,7 @@ export class ListBalanceLedgerComponent {
           this.filteredRows = ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);
@@ -287,6 +292,7 @@ export class ListBalanceLedgerComponent {
       {
         next: (ledgerEntries: any) => {
           this.lastLedger = ledgerEntries;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);

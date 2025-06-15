@@ -43,6 +43,7 @@ export class AdminDashboardComponent {
   lastLedger: LedgerEntry | null = null;
 
   columns: any = [];
+  isLoading: boolean = false;
 
   constructor(
     private readonly userService: UserService,
@@ -62,8 +63,12 @@ export class AdminDashboardComponent {
   private initializeComponent() {
     this.columns = [
       { name: 'Balance', prop: 'balance' },
-      { name: 'Debit', prop: 'debit' },
-      { name: 'Credit', prop: 'credit' },
+      // { name: 'Debit', prop: 'debit' },
+      // { name: 'Credit', prop: 'credit' },
+      {
+        name: 'Credit/Debit',
+        cellTemplate: this.creditDebit
+      },
       { name: 'Description', prop: 'description' },
       { name: 'Hint By', prop: 'hintBy' },
       { name: 'Payment Mode', prop: 'paymentMode' },
@@ -84,6 +89,7 @@ export class AdminDashboardComponent {
       }
     ];
 
+    this.isLoading = true;
     this.getLedgerEntries();
     this.getLastStockLedger();
     this.getUsers();
@@ -215,6 +221,7 @@ export class AdminDashboardComponent {
           // this.filterRows();
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);
@@ -228,6 +235,7 @@ export class AdminDashboardComponent {
       {
         next: (ledgerEntries: any) => {
           this.lastLedger = ledgerEntries;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);
@@ -255,6 +263,7 @@ export class AdminDashboardComponent {
         next: (users: any) => {
           console.log(users);
           this.users = users;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching users:', error);

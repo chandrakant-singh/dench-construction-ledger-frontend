@@ -9,7 +9,7 @@
     <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
   </div>
 
-  <div class="col-12" *ngIf="filteredRows && ledgerData.length; else loadingTemplate">
+  <div class="col-12" *ngIf="(filteredRows && ledgerData.length) || !isLoading; else loadingTemplate">
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Expenditure Ledger</strong>
@@ -35,6 +35,7 @@
 </div>
 
 <ng-template #statusTpl let-row="row">
+
   <ng-container *ngIf="row.status === 'pending'; else approved">
     <span class="badge" role="button" (click)="onStatusChange(row)" [ngClass]="{
       'bg-success': row.status === 'approved',
@@ -64,6 +65,22 @@
   <!-- <button class="btn btn-sm btn-danger" (click)="onDelete(row)">
     <i class="bi bi-trash"></i> Delete
   </button> -->
+</ng-template>
+
+<ng-template #creditDebit let-row="row">
+
+  <ng-container *ngIf="row.credit; else debit">
+    <span class="text-success">
+      {{ row.credit || '-' }}
+    </span>
+  </ng-container>
+
+  <ng-template #debit>
+    <span class="text-danger">
+      {{ row.debit || '-' }}
+    </span>
+  </ng-template>
+
 </ng-template>
 
 <ng-template #loadingTemplate>

@@ -48,6 +48,8 @@ export class ListStockLedgerComponent {
   ledgerData: Array<StockLedgerEntry> = [];
   showLedgerForm: boolean = false;
 
+  isLoading: boolean = false;
+
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
     { name: 'Category', prop: 'mainCategory' },
@@ -72,6 +74,7 @@ export class ListStockLedgerComponent {
   }
 
   private initializeComponent() {
+    this.isLoading = true;
     this.getLedgerEntries();
     this.getLastStockLedger();
     this.showHideCreateAndUpdateForm();
@@ -165,8 +168,9 @@ export class ListStockLedgerComponent {
       next: (categories) => {
         console.log('Categories:', categories);
         // this.categories = categories[0];
-        this.mainCategory = Object.keys(categories[0].category);
-        this.subCategory = Object.values(categories[0].category)?.filter(value => value !== null).flat() ?? [];
+        this.mainCategory = categories && categories[0] && Object.keys(categories[0].category);
+        this.subCategory = categories && categories[0] && (Object.values(categories[0].category)?.filter(value => value !== null).flat() ?? []);
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error getting categories:', error);
@@ -193,6 +197,7 @@ export class ListStockLedgerComponent {
           this.filteredRows = ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);
@@ -206,6 +211,7 @@ export class ListStockLedgerComponent {
       {
         next: (ledgerEntries: any) => {
           this.lastStockLedger = ledgerEntries;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching ledger entries:', error);
