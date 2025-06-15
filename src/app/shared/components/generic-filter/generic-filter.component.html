@@ -1,0 +1,52 @@
+<form class="row g-2 align-items-end" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+  <ng-container *ngFor="let field of filters">
+
+    <div class="col-12" *ngIf="field === 'item'">
+      <label class="form-label">Select Item</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let item of options.item || []" [value]="item.id">{{ item.name }}</option>
+      </select>
+    </div>
+
+    <div class="col-12" *ngIf="field === 'mainCategory'">
+      <label class="form-label">Main Category</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let category of options.mainCategory || []" [value]="category">{{ category }}</option>
+      </select>
+    </div>
+
+    <div class="col-12" *ngIf="field === 'subCategory'">
+      <label class="form-label">Party</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let item of options.subCategory || []" [value]="item">{{ item }}</option>
+      </select>
+    </div>
+
+    <div class="col-12" *ngIf="field === 'credit'">
+      <label class="form-label">Credit (result will be greater than)</label>
+      <input type="number" class="form-control form-control-sm" [formControlName]="field">
+    </div>
+
+    <div class="col-12" *ngIf="field === 'debit'">
+      <label class="form-label">Debit (result will be greater than)</label>
+      <input type="number" class="form-control form-control-sm" [formControlName]="field">
+    </div>
+
+    <div class="col-12" *ngIf="field === 'createdBy'">
+      <label class="form-label">Created By</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let user of options.users || []" [value]="user.uid">{{ user.name }}</option>
+      </select>
+    </div>
+  </ng-container>
+
+  <!-- Buttons -->
+  <div class="col-12 d-flex gap-2">
+    <button class="btn btn-primary w-100 btn-sm" type="submit">Apply</button>
+    <button class="btn btn-secondary w-100 btn-sm" type="button" (click)="resetFilters()">Reset</button>
+  </div>
+</form>

@@ -10,10 +10,20 @@ import { EndPoints } from '../../shared/constants/endpoints';
 import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
 import { CreateStockLedgerComponent } from "../../shared/components/create-stock-ledger/create-stock-ledger.component";
+import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { Offcanvas } from 'bootstrap';
+import { StockLedgerCategoryService } from '../../core/services/stock-ledger-category.service';
+import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.model';
 
 @Component({
   selector: 'app-list-stock-ledger',
-  imports: [CommonModule, FormsModule, NgxDatatableComponent, CreateStockLedgerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NgxDatatableComponent,
+    CreateStockLedgerComponent,
+    GenericFilterComponent
+  ],
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
 })
@@ -22,9 +32,20 @@ export class ListStockLedgerComponent {
   filteredRows: StockLedgerEntry[] = []; // Copy for filtering
   lastStockLedger: StockLedgerEntry | null = null;
   private searchTimeout: any;
-  rows: Array<StockLedgerEntry> = [];
+  // categories: StoreLedgerCategory = {
+  //   id: '',
+  //   category: {},
+  //   createdBy: '',
+  //   updatedBy: '',
+  //   createdAt: new Date(),
+  //   updatedAt: new Date(),
+  //   createdByName: ''
+  // };
 
-  ledgerData = [];
+  mainCategory: string[] = [];
+  subCategory: (string | null)[] = [];
+
+  ledgerData: Array<StockLedgerEntry> = [];
   showLedgerForm: boolean = false;
 
   ledgerColumns = [
@@ -40,7 +61,8 @@ export class ListStockLedgerComponent {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly stockLedgerService: StockLedgerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private readonly stockLedgerCategoryService: StockLedgerCategoryService
   ) { }
 
   ngOnInit(): void {
@@ -53,6 +75,7 @@ export class ListStockLedgerComponent {
     this.getLedgerEntries();
     this.getLastStockLedger();
     this.showHideCreateAndUpdateForm();
+    this.getCategories();
   }
 
   onSearchInputChange() {
@@ -63,11 +86,11 @@ export class ListStockLedgerComponent {
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) {
-      this.filteredRows = [...this.rows];
+      this.filteredRows = [...this.ledgerData];
       return;
     }
 
-    this.filteredRows = this.rows.filter(row =>
+    this.filteredRows = this.ledgerData.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(term)
       )
@@ -107,39 +130,55 @@ export class ListStockLedgerComponent {
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData); // or your data array
     const range = XLSX.utils.decode_range(worksheet['!ref']!);
 
-      // Apply styling: Bold headers and borders for all cells
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          const cell = worksheet[cellAddress];
-          if (!cell) continue;
+    // Apply styling: Bold headers and borders for all cells
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = worksheet[cellAddress];
+        if (!cell) continue;
 
-          cell.s = {
-            font: R === 0 ? { bold: true } : {}, // Bold header row
-            border: {
-              top:    { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left:   { style: "thin", color: { rgb: "000000" } },
-              right:  { style: "thin", color: { rgb: "000000" } },
-            },
-          };
-        }
+        cell.s = {
+          font: R === 0 ? { bold: true } : {}, // Bold header row
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        };
       }
+    }
 
-      const workbook: XLSX.WorkBook = {
-        Sheets: { 'data': worksheet },
-        SheetNames: ['data']
-      };
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'data': worksheet },
+      SheetNames: ['data']
+    };
 
-      const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-      const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-      FileSaver.saveAs(data, fileName);
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    FileSaver.saveAs(data, fileName);
+  }
+
+  public getCategories() {
+    this.stockLedgerCategoryService.getCategories().subscribe({
+      next: (categories) => {
+        console.log('Categories:', categories);
+        // this.categories = categories[0];
+        this.mainCategory = Object.keys(categories[0].category);
+        this.subCategory = Object.values(categories[0].category)?.filter(value => value !== null).flat() ?? [];
+      },
+      error: (error) => {
+        console.error('Error getting categories:', error);
+      },
+      complete: () => {
+      }
+    })
   }
 
   closeLedgerForm(event: boolean) {
     console.log(event);
-    if(event) {
+    if (event) {
       this.showLedgerForm = false;
       this.router.navigate([EndPoints.LIST_STOCK_LEDGER]);
       this.initializeComponent();
@@ -150,7 +189,7 @@ export class ListStockLedgerComponent {
     this.stockLedgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.rows = ledgerEntries;
+          this.ledgerData = ledgerEntries;
           this.filteredRows = ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
@@ -178,12 +217,79 @@ export class ListStockLedgerComponent {
   private showHideCreateAndUpdateForm() {
     this.route.queryParams.subscribe(params => {
       console.log("1 Query Params", params);
-      const {mode, id} = params;
-      if(mode === 'update' || mode === 'create') {
+      const { mode, id } = params;
+      if (mode === 'update' || mode === 'create') {
         this.showLedgerForm = true;
       } else {
         this.showLedgerForm = false;
       }
     });
+  }
+
+  // Filter Related functions
+  onFilterChanged(filters: any) {
+    console.log('Filters applied:', filters);
+    // Call service or update table data
+    const { mainCategory, subCategory } = filters;
+    this.filteredRows = [];
+    if (mainCategory || mainCategory) {
+      this.filteredRows = this.ledgerData.filter(entry => {
+        let isMatch = true;
+
+        // Filter by mainCategory (item)
+        if (mainCategory) {
+          if (entry.mainCategory !== mainCategory) {
+            isMatch = false;
+          }
+        }
+
+        // Filter by subCategory
+        if (subCategory) {
+          if (entry.subCategory !== subCategory) {
+            isMatch = false;
+          }
+        }
+
+        return isMatch;
+      });
+    } else {
+      this.resetFilters();
+    }
+    this.closeOffcanvas();
+    this.cdr.detectChanges()
+  }
+
+  resetFilters() {
+    this.filteredRows = [...this.ledgerData];
+  }
+
+  closeOffcanvas() {
+    const offcanvasEl: HTMLElement | null = document.getElementById('filterSidebar');
+    if (offcanvasEl) {
+      const bsOffcanvas = Offcanvas.getInstance(offcanvasEl);
+      if (bsOffcanvas) {
+        bsOffcanvas.hide();
+      }
+    }
+    this.forceOffcanvasCleanup();
+  }
+
+  private forceOffcanvasCleanup() {
+    // Wait a tick to allow Bootstrap to do its thing first
+    setTimeout(() => {
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''; // ✅ Fixes stuck scroll
+      }
+
+      const backdrop = document.querySelector('.offcanvas-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      document.body.classList.remove('offcanvas-backdrop', 'fade', 'show', 'modal-open'); // clean up
+
+      document.body.style.overflow = 'auto'; // or ''
+      if (backdrop) backdrop.remove();
+
+    }, 500); // Slight delay ensures transition is complete
   }
 }

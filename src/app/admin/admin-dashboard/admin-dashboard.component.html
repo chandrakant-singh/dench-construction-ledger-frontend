@@ -5,20 +5,19 @@
   </div>
   <div class="col mb-2">
     <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
-    <button class="btn btn-warning btn-sm float-end me-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+    <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
   </div>
 
-
-  <div class="col-12" *ngIf="filteredRows.length; else loadingTemplate">
+  <div class="col-12" *ngIf="filteredRows && ledgerData.length; else loadingTemplate">
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Expenditure Ledger</strong>
-        <strong class="text-muted">{{ `Balance:  ${this.lastLedger?.balance || 0}` }}</strong>
+        <strong class="text-muted">{{ `Balance: ${this.lastLedger?.balance || 0}` }}</strong>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
-          <ngx-datatable
-            class="bootstrap ledger-table"
+          <ngx-datatable class="bootstrap ledger-table"
             [rows]="filteredRows"
             [columns]="columns"
             [columnMode]="'standard'"
@@ -27,8 +26,7 @@
             [scrollbarH]="true"
             [scrollbarV]="true"
             [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
-            [rowHeight]="35"
-            [limit]="10">
+            [rowHeight]="35" [limit]="10">
           </ngx-datatable>
         </div>
       </div>
@@ -75,7 +73,25 @@
 </ng-template>
 
 <ng-container *ngIf="showLedgerForm">
-  <app-create-ledger-entry
-    (closeLedgerForm)="closeLedgerForm($event)"
-  ></app-create-ledger-entry>
+  <app-create-ledger-entry (closeLedgerForm)="closeLedgerForm($event)"></app-create-ledger-entry>
 </ng-container>
+
+<!-- Sidebar -->
+<div
+  class="offcanvas offcanvas-end custom-offcanvas-width"
+  tabindex="-1"
+  id="filterSidebar"
+  aria-labelledby="filterSidebarLabel"
+>
+  <div class="offcanvas-header">
+    <h5 id="filterSidebarLabel">Filter</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <app-generic-filter
+      [filters]="['credit', 'debit', 'createdBy']"
+      [options]="{ users: users }"
+      (filterChanged)="onFilterChanged($event)">
+    </app-generic-filter>
+  </div>
+</div>

@@ -11,3 +11,27 @@ label.required::after {
   content: ' *';
   color: red;
 }
+
+
+/* Add this in your component CSS or global styles */
+.custom-offcanvas-width {
+  width: 24vw !important;
+  max-width: 100vw !important;
+}
+
+@media (max-width: 425px) {
+  .custom-offcanvas-width {
+    width: 80vw !important;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 426px) {
+  .custom-offcanvas-width {
+    width: 38vw !important;
+  }
+}
+
+// main {
+//   height: 100vh;
+//     overflow-y: scroll;
+// }

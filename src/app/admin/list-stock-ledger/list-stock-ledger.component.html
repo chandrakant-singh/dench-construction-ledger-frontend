@@ -10,9 +10,10 @@
   </div>
   <div class="col mb-2">
     <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
-    <button class="btn btn-warning btn-sm float-end me-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+    <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
   </div>
-  <div class="col-12" *ngIf="filteredRows.length; else loadingTemplate">
+  <div class="col-12" *ngIf="filteredRows && ledgerData.length; else loadingTemplate">
     <app-ngx-datatable
       [rows]="filteredRows"
       [columns]="ledgerColumns"
@@ -34,3 +35,23 @@
     (closeLedgerForm)="closeLedgerForm($event)"
   ></app-create-stock-ledger>
 </ng-container>
+
+<!-- Sidebar -->
+<div
+  class="offcanvas offcanvas-end custom-offcanvas-width"
+  tabindex="-1"
+  id="filterSidebar"
+  aria-labelledby="filterSidebarLabel"
+>
+  <div class="offcanvas-header">
+    <h5 id="filterSidebarLabel">Filter</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <app-generic-filter
+      [filters]="['mainCategory', 'subCategory']"
+      [options]="{ mainCategory: mainCategory, subCategory: subCategory }"
+      (filterChanged)="onFilterChanged($event)">
+    </app-generic-filter>
+  </div>
+</div>

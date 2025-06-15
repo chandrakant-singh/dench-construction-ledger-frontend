@@ -12,21 +12,32 @@ import { LedgerService } from '../../core/services/ledger.service';
 import { LedgerEntry, LedgerEntryReq } from '../../core/models/ledger.model';
 import { StorageUtils } from '../../core/utils/storage.utils';
 import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
+import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { AppUser } from '../../core/models/user.model';
+import { Offcanvas } from 'bootstrap';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule, FormsModule, NgxDatatableModule, CreateLedgerEntryComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NgxDatatableModule,
+    CreateLedgerEntryComponent,
+    GenericFilterComponent
+  ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
 })
 export class AdminDashboardComponent {
-  filteredRows: any[] = []; // Copy for filtering
-  searchTerm: string = '';
   @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<any>;
   @ViewChild('actionTpl', { static: true }) actionTpl!: TemplateRef<any>;
+  @ViewChild('creditDebit', { static: true }) creditDebit!: TemplateRef<any>;
 
-  rows: Array<LedgerEntry> = [];
+  filteredRows: any[] = []; // Copy for filtering
+  searchTerm: string = '';
+  ledgerData: Array<LedgerEntry> = [];
   showLedgerForm: boolean = false;
+  users: AppUser[] = [];
 
   private searchTimeout: any;
   lastLedger: LedgerEntry | null = null;
@@ -40,7 +51,6 @@ export class AdminDashboardComponent {
     private readonly ledgerService: LedgerService,
     private cdr: ChangeDetectorRef
   ) {
-    console.log(this.userService.getUser());
   }
 
   ngOnInit(): void {
@@ -71,11 +81,12 @@ export class AdminDashboardComponent {
         name: 'Actions',
         cellTemplate: this.actionTpl,
         sortable: false
-      },
+      }
     ];
 
     this.getLedgerEntries();
     this.getLastStockLedger();
+    this.getUsers();
   }
 
   onSearchInputChange() {
@@ -86,11 +97,11 @@ export class AdminDashboardComponent {
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) {
-      this.filteredRows = [...this.rows];
+      this.filteredRows = [...this.ledgerData];
       return;
     }
 
-    this.filteredRows = this.rows.filter(row =>
+    this.filteredRows = this.ledgerData.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(term)
       )
@@ -121,7 +132,7 @@ export class AdminDashboardComponent {
 
   closeLedgerForm(event: boolean) {
     console.log(event);
-    if(event) {
+    if (event) {
       this.showLedgerForm = false;
       this.router.navigate([EndPoints.ADMIN_DASHBOARD]);
       this.initializeComponent();
@@ -163,43 +174,43 @@ export class AdminDashboardComponent {
     const fileName = `LedgerData-${new Date().toLocaleDateString()}.xlsx`;
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
 
-      const range = XLSX.utils.decode_range(worksheet['!ref']!);
+    const range = XLSX.utils.decode_range(worksheet['!ref']!);
 
-      // Apply styling: Bold headers and borders for all cells
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          const cell = worksheet[cellAddress];
-          if (!cell) continue;
+    // Apply styling: Bold headers and borders for all cells
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = worksheet[cellAddress];
+        if (!cell) continue;
 
-          cell.s = {
-            font: R === 0 ? { bold: true } : {}, // Bold header row
-            border: {
-              top:    { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left:   { style: "thin", color: { rgb: "000000" } },
-              right:  { style: "thin", color: { rgb: "000000" } },
-            },
-          };
-        }
+        cell.s = {
+          font: R === 0 ? { bold: true } : {}, // Bold header row
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        };
       }
+    }
 
-      const workbook: XLSX.WorkBook = {
-        Sheets: { 'data': worksheet },
-        SheetNames: ['data']
-      };
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'data': worksheet },
+      SheetNames: ['data']
+    };
 
-      const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-      const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-      FileSaver.saveAs(data, fileName);
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    FileSaver.saveAs(data, fileName);
   }
 
   private getLedgerEntries() {
     this.ledgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.rows = ledgerEntries;
+          this.ledgerData = ledgerEntries;
           this.filteredRows = ledgerEntries;
           // this.filterRows();
           console.log("Ledger : ", ledgerEntries);
@@ -228,12 +239,108 @@ export class AdminDashboardComponent {
   private showHideCreateAndUpdateForm() {
     this.route.queryParams.subscribe(params => {
       console.log("1 Query Params", params);
-      const {mode, id} = params;
-      if(mode === 'update' || mode === 'create') {
+      const { mode, id } = params;
+      if (mode === 'update' || mode === 'create') {
         this.showLedgerForm = true;
       } else {
         this.showLedgerForm = false;
       }
     });
+  }
+
+  // Filter functions
+  private getUsers() {
+    this.userService.getAllUsers().subscribe(
+      {
+        next: (users: any) => {
+          console.log(users);
+          this.users = users;
+        },
+        error: (error) => {
+          console.error('Error fetching users:', error);
+        }
+      }
+    );
+  }
+
+  onFilterChanged(filters: any) {
+    console.log('Filters applied:', filters);
+    // Call service or update table data
+    const { credit, debit, createdBy } = filters;
+    this.filteredRows = [];
+    if (credit || debit || createdBy) {
+      this.filteredRows = this.ledgerData.filter(entry => {
+        let isMatch = true;
+
+        // Filter by credit (if specified)
+        if (credit !== null && credit !== undefined && credit !== '') {
+          // Convert to number if stored as string
+          const entryCredit = Number(entry.credit);
+          if (isNaN(entryCredit) || entryCredit !== Number(credit)) {
+            if (entryCredit < credit) {
+              isMatch = false;
+            }
+          }
+        }
+
+        // Filter by debit (if specified)
+        if (debit !== null && debit !== undefined && debit !== '') {
+          // Convert to number if stored as string
+          const entryDebit = Number(entry.debit);
+          if (isNaN(entryDebit) || entryDebit !== Number(debit)) {
+            if (entryDebit < debit) {
+              isMatch = false;
+            }
+          }
+        }
+
+        // Filter by itemId (item)
+        if (createdBy) {
+          if (entry.createdBy !== createdBy.trim()) {
+            isMatch = false;
+          }
+        }
+
+        return isMatch;
+      });
+    } else {
+      this.resetFilters();
+    }
+    this.closeOffcanvas();
+    this.cdr.detectChanges()
+  }
+
+  resetFilters() {
+    this.filteredRows = [...this.ledgerData];
+  }
+
+  closeOffcanvas() {
+    const offcanvasEl: HTMLElement | null = document.getElementById('filterSidebar');
+    if (offcanvasEl) {
+      const bsOffcanvas = Offcanvas.getInstance(offcanvasEl);
+      if (bsOffcanvas) {
+        bsOffcanvas.hide();
+      }
+    }
+    this.forceOffcanvasCleanup();
+  }
+
+  private forceOffcanvasCleanup() {
+    // Wait a tick to allow Bootstrap to do its thing first
+    setTimeout(() => {
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''; // ✅ Fixes stuck scroll
+      }
+
+      const backdrop = document.querySelector('.offcanvas-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      document.body.classList.remove('offcanvas-backdrop', 'fade', 'show', 'modal-open'); // clean up
+
+      document.body.style.overflow = 'auto'; // or ''
+      if (backdrop) backdrop.remove();
+
+    }, 500); // Slight delay ensures transition is complete
   }
 }

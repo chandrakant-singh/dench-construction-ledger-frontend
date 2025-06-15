@@ -8,13 +8,22 @@ import { FormsModule } from '@angular/forms';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
 import { EndPoints } from '../../shared/constants/endpoints';
-import { BalanceLedgerEntry } from '../../core/models/balance-ledger';
+import { BalanceLedgerEntry, BalanceLedgerItem } from '../../core/models/balance-ledger';
 import { BalanceLedgerService } from '../../core/services/balance-ledger.service';
 import { CreateBalanceLedgerComponent } from '../../shared/components/create-balance-ledger/create-balance-ledger.component';
+import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { BalanceLedgerItemService } from '../../core/services/balance-ledger-item.service';
+import { Offcanvas } from 'bootstrap';
 
 @Component({
   selector: 'app-list-balance-ledger',
-  imports: [CommonModule, FormsModule, NgxDatatableComponent, CreateBalanceLedgerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NgxDatatableComponent,
+    CreateBalanceLedgerComponent,
+    GenericFilterComponent
+  ],
   templateUrl: './list-balance-ledger.component.html',
   styleUrl: './list-balance-ledger.component.scss'
 })
@@ -23,10 +32,10 @@ export class ListBalanceLedgerComponent {
   filteredRows: BalanceLedgerEntry[] = []; // Copy for filtering
   lastLedger: BalanceLedgerEntry | null = null;
   private searchTimeout: any;
-  rows: Array<BalanceLedgerEntry> = [];
 
-  ledgerData = [];
+  ledgerData: Array<BalanceLedgerEntry> = [];
   showLedgerForm: boolean = false;
+  items: BalanceLedgerItem[] = [];
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
@@ -43,6 +52,7 @@ export class ListBalanceLedgerComponent {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly balanceLedgerService: BalanceLedgerService,
+    private readonly balanceLedgerItemService: BalanceLedgerItemService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -55,6 +65,7 @@ export class ListBalanceLedgerComponent {
   private initializeComponent() {
     this.getLedgerEntries();
     this.getLastBalanceLedger();
+    this.getCategories();
   }
 
   onSearchInputChange() {
@@ -65,11 +76,11 @@ export class ListBalanceLedgerComponent {
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) {
-      this.filteredRows = [...this.rows];
+      this.filteredRows = [...this.ledgerData];
       return;
     }
 
-    this.filteredRows = this.rows.filter(row =>
+    this.filteredRows = this.ledgerData.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(term)
       )
@@ -113,68 +124,153 @@ export class ListBalanceLedgerComponent {
   //   FileSaver.saveAs(data, fileName);
   // }
   exportToExcel(): void {
-  const exportData = this.filteredRows.map(row => ({
-    'Date': row.date,
-    'Item': row.itemName,
-    'Quantity': row.quantity,
-    'Rate': row.rate,
-    'Amount': row.amount,
-    'Credit': row.credit,
-    'Balance': row.balance,
-    'Description': row.description,
-  }));
+    const exportData = this.filteredRows.map(row => ({
+      'Date': row.date,
+      'Item': row.itemName,
+      'Quantity': row.quantity,
+      'Rate': row.rate,
+      'Amount': row.amount,
+      'Credit': row.credit,
+      'Balance': row.balance,
+      'Description': row.description,
+    }));
 
-  const fileName = `Balance-Ledger-${new Date().toLocaleDateString()}.xlsx`;
+    const fileName = `Balance-Ledger-${new Date().toLocaleDateString()}.xlsx`;
 
-  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
 
-  const range = XLSX.utils.decode_range(worksheet['!ref']!);
+    const range = XLSX.utils.decode_range(worksheet['!ref']!);
 
-  // Apply styling: Bold headers and borders for all cells
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-      const cell = worksheet[cellAddress];
-      if (!cell) continue;
+    // Apply styling: Bold headers and borders for all cells
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = worksheet[cellAddress];
+        if (!cell) continue;
 
-      cell.s = {
-        font: R === 0 ? { bold: true } : {}, // Bold header row
-        border: {
-          top:    { style: "thin", color: { rgb: "000000" } },
-          bottom: { style: "thin", color: { rgb: "000000" } },
-          left:   { style: "thin", color: { rgb: "000000" } },
-          right:  { style: "thin", color: { rgb: "000000" } },
-        },
-      };
+        cell.s = {
+          font: R === 0 ? { bold: true } : {}, // Bold header row
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        };
+      }
     }
+
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'data': worksheet },
+      SheetNames: ['data']
+    };
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    FileSaver.saveAs(data, fileName);
   }
-
-  const workbook: XLSX.WorkBook = {
-    Sheets: { 'data': worksheet },
-    SheetNames: ['data']
-  };
-
-  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  FileSaver.saveAs(data, fileName);
-}
 
 
   closeLedgerForm(event: boolean) {
     console.log(event);
-    if(event) {
+    if (event) {
       this.showLedgerForm = false;
       this.router.navigate([EndPoints.LIST_BALANCE_LEDGER]);
       this.initializeComponent();
     }
   }
 
+  onFilterChanged(filters: any) {
+    console.log('Filters applied:', filters);
+    // Call service or update table data
+    const { credit, item } = filters;
+    this.filteredRows = [];
+    if (credit || item) {
+      this.filteredRows = this.ledgerData.filter(entry => {
+        let isMatch = true;
+
+        // Filter by credit (if specified)
+        if (credit !== null && credit !== undefined && credit !== '') {
+          // Convert to number if stored as string
+          const entryCredit = Number(entry.credit);
+          if (isNaN(entryCredit) || entryCredit !== Number(credit)) {
+            if (entryCredit < credit) {
+              isMatch = false;
+            }
+          }
+        }
+
+        // Filter by itemId (item)
+        if (item) {
+          if (entry.itemId !== item) {
+            isMatch = false;
+          }
+        }
+
+        return isMatch;
+      });
+    } else {
+      this.resetFilters();
+    }
+    this.closeOffcanvas();
+    this.cdr.detectChanges()
+  }
+
+  resetFilters() {
+    this.filteredRows = [...this.ledgerData];
+  }
+
+  closeOffcanvas() {
+    const offcanvasEl: HTMLElement | null = document.getElementById('filterSidebar');
+    if (offcanvasEl) {
+      const bsOffcanvas = Offcanvas.getInstance(offcanvasEl);
+      if (bsOffcanvas) {
+        bsOffcanvas.hide();
+      }
+    }
+    this.forceOffcanvasCleanup();
+  }
+
+  private forceOffcanvasCleanup() {
+    // Wait a tick to allow Bootstrap to do its thing first
+    setTimeout(() => {
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''; // ✅ Fixes stuck scroll
+      }
+
+      const backdrop = document.querySelector('.offcanvas-backdrop');
+      if (backdrop) {
+        backdrop.remove();
+      }
+      document.body.classList.remove('offcanvas-backdrop', 'fade', 'show', 'modal-open'); // clean up
+
+      document.body.style.overflow = 'auto'; // or ''
+      if (backdrop) backdrop.remove();
+
+    }, 500); // Slight delay ensures transition is complete
+  }
+
+
+  public getCategories(): void {
+    this.balanceLedgerItemService.getAll().subscribe({
+      next: (items) => {
+        console.log('Items:', items);
+        this.items = items;
+      },
+      error: (error) => {
+        console.error('Error getting categories:', error);
+      },
+      complete: () => {
+      }
+    })
+  }
+
   private getLedgerEntries() {
     this.balanceLedgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.rows = ledgerEntries;
+          this.ledgerData = ledgerEntries;
           this.filteredRows = ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
@@ -202,8 +298,8 @@ export class ListBalanceLedgerComponent {
   private showHideCreateAndUpdateForm() {
     this.route.queryParams.subscribe(params => {
       console.log("1 Query Params", params);
-      const {mode, id} = params;
-      if(mode === 'update' || mode === 'create') {
+      const { mode, id } = params;
+      if (mode === 'update' || mode === 'create') {
         this.showLedgerForm = true;
       } else {
         this.showLedgerForm = false;
