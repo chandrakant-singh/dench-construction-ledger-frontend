@@ -1,3 +1,10 @@
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* You can add global styles to this file, and also import other style files */
 .btn-xs {
   padding: 0.25rem 0.4rem !important;
