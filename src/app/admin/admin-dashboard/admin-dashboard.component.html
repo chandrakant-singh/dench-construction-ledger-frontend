@@ -4,8 +4,8 @@
       [(ngModel)]="searchTerm" (input)="onSearchInputChange()" />
   </div>
   <div class="col mb-2">
-    <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
-    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
+    <button class="btn btn-primary btn-sm float-end" type="button" (click)="createEntry()">Create Entry</button>
+    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" type="button" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
     <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
   </div>
 

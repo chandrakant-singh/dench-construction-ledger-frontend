@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as XLSX from 'xlsx-js-style';
 import * as FileSaver from 'file-saver';
+import { Offcanvas } from 'bootstrap';
 
 import { EndPoints } from '../../shared/constants/endpoints';
 import { LedgerService } from '../../core/services/ledger.service';
@@ -14,7 +15,6 @@ import { StorageUtils } from '../../core/utils/storage.utils';
 import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
 import { AppUser } from '../../core/models/user.model';
-import { Offcanvas } from 'bootstrap';
 
 @Component({
   selector: 'app-admin-dashboard',
