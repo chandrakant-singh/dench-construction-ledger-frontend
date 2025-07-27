@@ -5,11 +5,11 @@ export const NAV_ITEMS = [
     path: '/admin/dashboard',
     roles: ['admin']
   },
-  {
-    label: 'Add Ledger Entry',
-    path: '/admin/create-ledger-entry',
-    roles: ['admin']
-  },
+  // {
+  //   label: 'Add Ledger Entry',
+  //   path: '/admin/create-ledger-entry',
+  //   roles: ['admin']
+  // },
   {
     label: 'List Stock Ledger',
     path: '/admin/list-stock-ledger',
@@ -37,9 +37,9 @@ export const NAV_ITEMS = [
     path: '/supervisor/dashboard',
     roles: ['supervisor']
   },
-  {
-    label: 'Add Ledger Entry',
-    path: '/supervisor/add-entry',
-    roles: ['supervisor']
-  },
+  // {
+  //   label: 'Add Ledger Entry',
+  //   path: '/supervisor/add-entry',
+  //   roles: ['supervisor']
+  // },
 ];

@@ -1,39 +1,108 @@
 <div class="row">
+  <!-- Search Input -->
   <div class="col-12 col-sm-8 col-md-4">
     <input type="text" class="form-control mb-3 form-control form-control-sm" placeholder="Search..."
       [(ngModel)]="searchTerm" (input)="onSearchInputChange()" />
   </div>
+  <!-- Action Buttons -->
   <div class="col mb-2">
-    <button class="btn btn-primary btn-sm float-end" type="button" (click)="createEntry()">Create Entry</button>
-    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" type="button" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
-    <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
+    <div class="float-end">
+      <!-- Edit/View Toggle -->
+      <button class="btn btn-primary btn-sm mx-1"
+              type="button"
+              (click)="isEditMode ? preview() : cancelPreviewMode()">
+        {{ isEditMode ? 'View' : 'Back' }}
+      </button>
+
+      <!-- Create Entry Button -->
+      <button *ngIf="isEditMode"
+              class="btn btn-primary btn-sm mx-1"
+              type="button"
+              (click)="createEntry()">
+        Create Entry
+      </button>
+
+      <!-- Export Button -->
+      <button *ngIf="!isEditMode"
+              class="btn btn-warning btn-sm mx-1 mx-sm-2"
+              type="button"
+              (click)="exportToExcel()">
+        Download as Excel
+      </button>
+
+      <!-- Filter Button -->
+      <button class="btn btn-primary btn-sm mx-1"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#filterSidebar">
+        Filter
+      </button>
+    </div>
   </div>
 
+  <!-- Main Content -->
   <div class="col-12" *ngIf="(filteredRows && ledgerData.length) || !isLoading; else loadingTemplate">
     <div class="card mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <strong>Expenditure Ledger</strong>
-        <strong class="text-muted">{{ `Balance: ${this.lastLedger?.balance || 0}` }}</strong>
+      <!-- Card Header -->
+      <div class="card-header d-flex justify-content-between align-items-center p-2">
+        <strong class="small">Expenditure Ledger</strong>
+        <strong class="text-muted small">Balance:
+          <span *ngIf="this.lastLedger"
+            [ngClass]="this.lastLedger.balance > 0 ? 'text-success' : 'text-danger'">{{this.lastLedger.balance ||
+            0}}</span>
+        </strong>
       </div>
+
+      <!-- Card Body with Data Table -->
       <div class="card-body p-0">
         <div class="table-responsive">
-          <ngx-datatable class="bootstrap ledger-table"
-            [rows]="filteredRows"
-            [columns]="columns"
-            [columnMode]="'standard'"
-            [headerHeight]="30"
-            [footerHeight]="30"
-            [scrollbarH]="true"
-            [scrollbarV]="true"
-            [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
-            [rowHeight]="35" [limit]="10">
-          </ngx-datatable>
+          <!-- Edit Mode: Accordion Table -->
+          <div class="accordion" id="ledgerAccordion" *ngIf="isEditMode; else fullTable">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button p-2" [class.collapsed]="!isAccordionOpen" (click)="toggleAccordion()">
+                  <small>Recent Entries ({{filteredRows.length}})</small>
+                </button>
+              </h2>
+              <div class="accordion-collapse collapse" [class.show]="isAccordionOpen">
+                <div class="accordion-body p-0 m-0">
+                  <ngx-datatable class="bootstrap ledger-table"
+                      [rows]="filteredRows"
+                      [columns]="columns"
+                      [columnMode]="'standard'"
+                      [headerHeight]="30"
+                      [footerHeight]="30"
+                      [scrollbarH]="true"
+                      [scrollbarV]="true"
+                      [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
+                      [rowHeight]="35" [limit]="10">
+                    </ngx-datatable>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Mode: Full Table -->
+          <ng-template #fullTable>
+            <ngx-datatable class="bootstrap ledger-table"
+              [rows]="filteredRows"
+              [columns]="columns"
+              [columnMode]="'standard'"
+              [headerHeight]="30"
+              [footerHeight]="30"
+              [scrollbarH]="true"
+              [scrollbarV]="true"
+              [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
+              [rowHeight]="35" [limit]="10">
+            </ngx-datatable>
+          </ng-template>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Status Column Template -->
 <ng-template #statusTpl let-row="row">
 
   <ng-container *ngIf="row.status === 'pending'; else approved">
@@ -58,6 +127,7 @@
 
 </ng-template>
 
+<!-- Action Column Template -->
 <ng-template #actionTpl let-row="row">
   <button class="btn btn-xs btn-warning me-2" (click)="onEdit(row)" [disabled]="row.status === 'approved'">
     <i class="bi bi-pencil"></i> Edit
@@ -67,6 +137,7 @@
   </button> -->
 </ng-template>
 
+<!-- Credit/Debit Column Template -->
 <ng-template #creditDebit let-row="row">
 
   <ng-container *ngIf="row.credit; else debit">
@@ -83,31 +154,27 @@
 
 </ng-template>
 
+<!-- Loading Template -->
 <ng-template #loadingTemplate>
   <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
     <div class="spinner-border" role="status" aria-hidden="true"></div>
   </div>
 </ng-template>
 
+<!-- Ledger Form Modal -->
 <ng-container *ngIf="showLedgerForm">
   <app-create-ledger-entry (closeLedgerForm)="closeLedgerForm($event)"></app-create-ledger-entry>
 </ng-container>
 
-<!-- Sidebar -->
-<div
-  class="offcanvas offcanvas-end custom-offcanvas-width"
-  tabindex="-1"
-  id="filterSidebar"
-  aria-labelledby="filterSidebarLabel"
->
+<!-- Filter Sidebar -->
+<div class="offcanvas offcanvas-end custom-offcanvas-width" tabindex="-1" id="filterSidebar"
+  aria-labelledby="filterSidebarLabel">
   <div class="offcanvas-header">
     <h5 id="filterSidebarLabel">Filter</h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
   <div class="offcanvas-body">
-    <app-generic-filter
-      [filters]="['credit', 'debit', 'createdBy']"
-      [options]="{ users: users }"
+    <app-generic-filter [filters]="['credit', 'debit', 'createdBy']" [options]="{ users: users }"
       (filterChanged)="onFilterChanged($event)">
     </app-generic-filter>
   </div>

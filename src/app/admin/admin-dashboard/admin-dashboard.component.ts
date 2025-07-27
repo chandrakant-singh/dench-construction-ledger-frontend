@@ -29,6 +29,7 @@ import { AppUser } from '../../core/models/user.model';
   styleUrl: './admin-dashboard.component.scss'
 })
 export class AdminDashboardComponent {
+  isEditMode: boolean = true;
   @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<any>;
   @ViewChild('actionTpl', { static: true }) actionTpl!: TemplateRef<any>;
   @ViewChild('creditDebit', { static: true }) creditDebit!: TemplateRef<any>;
@@ -62,30 +63,32 @@ export class AdminDashboardComponent {
 
   private initializeComponent() {
     this.columns = [
-      { name: 'Balance', prop: 'balance' },
-      // { name: 'Debit', prop: 'debit' },
-      // { name: 'Credit', prop: 'credit' },
+      { name: 'Balance', prop: 'balance', width: 80},
+      // { name: 'Debit', prop: 'debit', width: 120},
+      // { name: 'Credit', prop: 'credit', width: 120},
       {
         name: 'Credit/Debit',
-        cellTemplate: this.creditDebit
+        cellTemplate: this.creditDebit,
+        width: 80
       },
-      { name: 'Description', prop: 'description' },
-      { name: 'Hint By', prop: 'hintBy' },
-      { name: 'Payment Mode', prop: 'paymentMode' },
-      { name: 'Deposited By', prop: 'depositedByName' },
-      { name: 'Debited By', prop: 'debitedByName' },
-      { name: 'Date', prop: 'date' },
-      // { name: 'Approved By', prop: 'approvedBy' },
-      { name: 'Created By', prop: 'createdByName' },
+      { name: 'Description', prop: 'description'},
+      { name: 'Hint By', prop: 'hintBy', width: 120},
+      { name: 'Payment Mode', prop: 'paymentMode', width: 120},
+      { name: 'Deposited By', prop: 'depositedByName', width: 120},
+      { name: 'Debited By', prop: 'debitedByName', width: 120},
+      { name: 'Date', prop: 'date', width: 90},
+      // { name: 'Approved By', prop: 'approvedBy', width: 120},
+      { name: 'Created By', prop: 'createdByName', width: 100},
       {
         name: 'Status/Approved by',
         prop: 'status',
-        cellTemplate: this.statusTpl
+        cellTemplate: this.statusTpl,
       },
       {
         name: 'Actions',
         cellTemplate: this.actionTpl,
-        sortable: false
+        sortable: false,
+        width: 80
       }
     ];
 
@@ -93,6 +96,12 @@ export class AdminDashboardComponent {
     this.getLedgerEntries();
     this.getLastStockLedger();
     this.getUsers();
+  }
+
+  isAccordionOpen = false;
+
+  toggleAccordion() {
+    this.isAccordionOpen = !this.isAccordionOpen;
   }
 
   onSearchInputChange() {
@@ -210,6 +219,14 @@ export class AdminDashboardComponent {
 
     const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     FileSaver.saveAs(data, fileName);
+  }
+
+  public preview() {
+    this.isEditMode = !this.isEditMode;
+  }
+
+  public cancelPreviewMode() {
+    this.isEditMode = !this.isEditMode;
   }
 
   private getLedgerEntries() {

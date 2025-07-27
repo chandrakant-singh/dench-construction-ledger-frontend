@@ -4,26 +4,31 @@
   </div>
   <div class="card-body" *ngIf="appUser; else loadingTemplate">
     <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">
-      <div class="row g-3">
+      <div class="row g-2">
 
-        <div class="col-lg-4 col-md-6">
-          <label class="form-label">Balance</label>
-          <input type="number" class="form-control" formControlName="balance" [readonly]="!isAdmin">
+        <div class="col-lg-4 col-md-6 col-6">
+          <label class="form-label font lh-1 fs-smaller">Balance</label>
+          <input type="number" class="form-control form-control-sm" formControlName="balance" [readonly]="!isAdmin">
         </div>
 
-        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Credit</label>
-          <input type="number" class="form-control" formControlName="credit" (input)="calculateBalance()">
+        <div class="col-lg-4 col-md-6 col-6 fs-smaller" *ngIf="isAdmin">
+          <label class="form-label lh-1">Date</label>
+          <input type="date" class="form-control form-control-sm" formControlName="date">
         </div>
 
-        <div class="col-lg-4 col-md-6">
-          <label class="form-label">Debit</label>
-          <input type="number" class="form-control" formControlName="debit" (input)="calculateBalance()">
+        <div class="col-lg-4 col-md-6 col-6 fs-smaller" *ngIf="isAdmin">
+          <label class="form-label lh-1">Credit</label>
+          <input type="number" class="form-control form-control-sm" formControlName="credit" (input)="calculateBalance()">
         </div>
 
-        <div class="col-lg-4 col-md-6">
-          <label class="form-label">Mode of Payment</label>
-          <select class="form-select" formControlName="paymentMode">
+        <div class="col-lg-4 col-md-6 col-6 fs-smaller">
+          <label class="form-label lh-1">Debit</label>
+          <input type="number" class="form-control form-control-sm" formControlName="debit" (input)="calculateBalance()">
+        </div>
+
+        <div class="col-lg-4 col-md-6 fs-smaller">
+          <label class="form-label lh-1">Mode of Payment</label>
+          <select class="form-select form-select-sm" formControlName="paymentMode">
             <option value="">Select</option>
             <option value="cash">Cash</option>
             <option value="bank">Bank Transfer</option>
@@ -31,18 +36,18 @@
           </select>
         </div>
 
-        <div class="col-lg-4 col-md-6">
-          <label class="form-label">Description</label>
-          <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
+        <div class="col-lg-4 col-md-6 fs-smaller">
+          <label class="form-label lh-1">Description</label>
+          <textarea type="text" class="form-control form-control-sm" formControlName="description" rows="2"></textarea>
         </div>
 
-        <div class="col-lg-4 col-md-6">
-          <label class="form-label">Hint By</label>
-          <textarea type="text" class="form-control" cols="1" formControlName="hintBy" rows="2"></textarea>
+        <div class="col-lg-4 col-md-6 fs-smaller">
+          <label class="form-label lh-1">Hint By</label>
+          <input type="text" class="form-control form-control-sm" formControlName="hintBy" rows="2"/>
         </div>
 
-        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Deposited By</label>
+        <!-- <div class="col-lg-4 col-md-6 fs-smaller" *ngIf="isAdmin">
+          <label class="form-label lh-1">Deposited By</label>
           <select class="form-select" formControlName="depositedBy" (change)="onUserChange($event, 'depositedBy')">
             <option value="">Select Users</option>
             <option *ngFor="let user of allUsers" [value]="user.uid">
@@ -51,29 +56,24 @@
           </select>
         </div>
 
-        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Debited By</label>
+        <div class="col-lg-4 col-md-6 fs-smaller" *ngIf="isAdmin">
+          <label class="form-label lh-1">Debited By</label>
           <select class="form-select" formControlName="debitedBy" (change)="onUserChange($event, 'debitedBy')">
             <option value="">Select Users</option>
             <option *ngFor="let user of allUsers" [value]="user.uid">
               {{ user.name }}
             </option>
           </select>
-        </div>
+        </div> -->
 
-        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Date</label>
-          <input type="date" class="form-control" formControlName="date">
-        </div>
-
-        <!-- <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Approved By</label>
+        <!-- <div class="col-lg-4 col-md-6 fs-smaller" *ngIf="isAdmin">
+          <label class="form-label">Approve lh-1d By</label>
           <input type="text" class="form-control" formControlName="approvedBy">
         </div> -->
 
-        <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
-          <label class="form-label">Status</label>
-          <select class="form-select" formControlName="status">
+        <div class="col-lg-4 col-md-6 fs-smaller col-6" *ngIf="isAdmin">
+          <label class="form-label fro lh-1">Status</label>
+          <select class="form-select form-select-sm" formControlName="status">
             <option value="">Select</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
@@ -86,10 +86,10 @@
         <!-- <button class="btn btn-primary" type="submit" [disabled]="ledgerForm.invalid">
           {{ existingLedger? 'Update' : 'Create' }} Entry
         </button> -->
-        <app-loading-button [btnClass]="'btn btn-primary'" [isLoading]="isLoading" [btnDisable]="ledgerForm.invalid"
+        <app-loading-button [btnClass]="'btn btn-primary btn-sm'" [isLoading]="isLoading" [btnDisable]="ledgerForm.invalid"
           [label]="(existingLedger ? 'Update' : 'Create') + ' Entry'" [type]="'submit'">
         </app-loading-button>
-        <button class="btn btn-secondary ms-2" type="button" (click)="onCancel()">Cancel</button>
+        <button class="btn btn-secondary ms-2 btn-sm" type="button" (click)="onCancel()">Cancel</button>
       </div>
     </form>
   </div>
