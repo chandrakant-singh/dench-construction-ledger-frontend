@@ -39,7 +39,7 @@ export class SupervisorDashboardComponent implements AfterViewInit {
   ledgerData: Array<LedgerEntry> = [];
   showLedgerForm: boolean = false;
   users: AppUser[] = [];
-  
+
   private searchTimeout: any;
   lastLedger: LedgerEntry | null = null;
 
@@ -98,7 +98,7 @@ export class SupervisorDashboardComponent implements AfterViewInit {
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
-    
+
     if (!term) {
       this.filteredRows = dataToFilter;
       return;
@@ -168,7 +168,7 @@ export class SupervisorDashboardComponent implements AfterViewInit {
 
     const todayEntries = entries.filter(entry => {
       if (!entry.createdAt) return false;
-      
+
       let entryDate: Date;
       try {
         // Handle both Date objects and date strings
@@ -182,7 +182,7 @@ export class SupervisorDashboardComponent implements AfterViewInit {
         } else {
           return false;
         }
-        
+
         return entryDate >= todayStart && entryDate <= todayEnd;
       } catch (error) {
         console.warn('Error parsing date for entry:', entry.id, error);
@@ -249,7 +249,7 @@ export class SupervisorDashboardComponent implements AfterViewInit {
     // Call service or update table data
     const { credit, debit, createdBy } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
-    
+
     this.filteredRows = [];
     if (credit || debit || createdBy) {
       this.filteredRows = dataToFilter.filter(entry => {
@@ -325,5 +325,19 @@ export class SupervisorDashboardComponent implements AfterViewInit {
       if (backdrop) backdrop.remove();
 
     }, 500); // Slight delay ensures transition is complete
+  }
+
+  get todaysBalance(): number | null {
+    if (!this.todayEntries || this.todayEntries.length === 0) return null;
+    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
+    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
+    return totalCreditSum - totalDebitSum;
+  }
+
+  get overallBalance(): number | null {
+    if (!this.ledgerData || this.ledgerData.length === 0) return null;
+    const totalCreditSum =  this.ledgerData.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
+    const totalDebitSum =  this.ledgerData.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
+    return totalCreditSum - totalDebitSum;
   }
 }

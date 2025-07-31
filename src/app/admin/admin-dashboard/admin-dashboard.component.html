@@ -47,9 +47,16 @@
       <div class="card-header d-flex justify-content-between align-items-center p-2">
         <strong class="small">Expenditure Ledger</strong>
         <strong class="text-muted small">Balance:
-          <span *ngIf="this.lastLedger"
-            [ngClass]="this.lastLedger.balance > 0 ? 'text-success' : 'text-danger'">{{this.lastLedger.balance ||
-            0}}</span>
+          <span *ngIf="isEditMode">
+            <span *ngIf="todaysBalance !== null" [ngClass]="todaysBalance > 0 ? 'text-success' : 'text-danger'">
+              {{ todaysBalance }}
+            </span>
+            <span *ngIf="todaysBalance === null" class="text-muted">0</span>
+          </span>
+          <span *ngIf="!isEditMode">
+            <span *ngIf="lastLedger" [ngClass]="lastLedger.balance > 0 ? 'text-success' : 'text-danger'">{{ lastLedger.balance || 0 }}</span>
+            <span *ngIf="!lastLedger" class="text-muted">0</span>
+          </span>
         </strong>
       </div>
 

@@ -418,4 +418,11 @@ export class AdminDashboardComponent {
 
     }, 500); // Slight delay ensures transition is complete
   }
+
+  get todaysBalance(): number | null {
+    if (!this.todayEntries || this.todayEntries.length === 0) return null;
+    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
+    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
+    return totalCreditSum - totalDebitSum;
+  }
 }

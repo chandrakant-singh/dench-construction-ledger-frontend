@@ -96,7 +96,7 @@ export class ListStockLedgerComponent {
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
-    
+
     if (!term) {
       this.filteredRows = dataToFilter;
       return;
@@ -241,7 +241,7 @@ export class ListStockLedgerComponent {
 
     const todayEntries = entries.filter(entry => {
       if (!entry.createdAt) return false;
-      
+
       let entryDate: Date;
       try {
         // Handle both Date objects and date strings
@@ -255,7 +255,7 @@ export class ListStockLedgerComponent {
         } else {
           return false;
         }
-        
+
         return entryDate >= todayStart && entryDate <= todayEnd;
       } catch (error) {
         console.warn('Error parsing date for entry:', entry.id, error);
@@ -299,7 +299,7 @@ export class ListStockLedgerComponent {
     // Call service or update table data
     const { mainCategory, subCategory } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
-    
+
     this.filteredRows = [];
     if (mainCategory || subCategory) {
       this.filteredRows = dataToFilter.filter(entry => {
@@ -360,5 +360,12 @@ export class ListStockLedgerComponent {
       if (backdrop) backdrop.remove();
 
     }, 500); // Slight delay ensures transition is complete
+  }
+
+  get todaysBalance(): number | null {
+    if (!this.todayEntries || this.todayEntries.length === 0) return null;
+    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockIn, 0);
+    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockOut, 0);
+    return totalCreditSum - totalDebitSum;
   }
 }
