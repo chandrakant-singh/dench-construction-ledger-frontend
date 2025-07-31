@@ -156,3 +156,10 @@
     </app-generic-filter>
   </div>
 </div>
+
+<!-- Action Column Template -->
+<ng-template #actionTpl let-row="row">
+  <button class="btn btn-xs btn-warning me-2" (click)="onEdit(row)" [disabled]="row.status !== 'pending'">
+    <i class="bi bi-pencil"></i> Edit
+  </button>
+</ng-template>

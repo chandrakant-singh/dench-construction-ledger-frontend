@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, TemplateRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
@@ -26,11 +26,12 @@ import { GenericFilterComponent } from '../../shared/components/generic-filter/g
   templateUrl: './supervisor-dashboard.component.html',
   styleUrl: './supervisor-dashboard.component.scss'
 })
-export class SupervisorDashboardComponent {
+export class SupervisorDashboardComponent implements AfterViewInit {
   isEditMode: boolean = true;
   isAccordionOpen = false;
   @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<any>;
   @ViewChild('creditDebit', { static: true }) creditDebit!: TemplateRef<any>;
+  @ViewChild('actionTpl', { static: true }) actionTpl!: TemplateRef<any>;
 
   filteredRows: any[] = []; // Copy for filtering
   todayEntries: any[] = []; // Today's entries for edit mode
@@ -60,23 +61,25 @@ export class SupervisorDashboardComponent {
     this.initializeComponent();
   }
 
-  private initializeComponent() {
+  ngAfterViewInit(): void {
     this.columns = [
       { name: 'Balance', prop: 'balance' },
-      {
-        name: 'Credit/Debit',
-        cellTemplate: this.creditDebit
-      },
+      { name: 'Credit/Debit', cellTemplate: this.creditDebit },
       { name: 'Description', prop: 'description' },
       { name: 'Hint By', prop: 'hintBy' },
       { name: 'Date', prop: 'date' },
+      { name: 'Status', prop: 'status', cellTemplate: this.statusTpl },
       {
-        name: 'Status',
-        prop: 'status',
-        cellTemplate: this.statusTpl
-      },
+        name: 'Actions',
+        cellTemplate: this.actionTpl,
+        sortable: false,
+        width: 100
+      }
     ];
+    this.cdr.detectChanges();
+  }
 
+  private initializeComponent() {
     this.isLoading = true;
     this.getLedgerEntries();
     this.getLastStockLedger();
@@ -215,6 +218,14 @@ export class SupervisorDashboardComponent {
         this.showLedgerForm = false;
       }
     });
+  }
+
+  onEdit(row: any) {
+    if (row.status === 'pending') {
+      this.showLedgerForm = false;
+      this.router.navigate([EndPoints.SUPERVISOR_DASHBOARD], { queryParams: { mode: 'update', id: row.id } });
+      this.showHideCreateAndUpdateForm();
+    }
   }
 
   // Filter functions
