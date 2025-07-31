@@ -1,0 +1,108 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Super Admin Dashboard</h2>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3" *ngFor="let stat of stats">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title text-muted mb-1">{{ stat.title }}</h6>
+              <h3 class="mb-0">{{ stat.value }}</h3>
+            </div>
+            <div class="text-{{ stat.color }}">
+              <i class="{{ stat.icon }} fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <!-- Recent Activities -->
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Recent Activities</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex justify-content-between align-items-start" 
+                 *ngFor="let activity of recentActivities">
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">{{ activity.action }}</div>
+                <small class="text-muted">{{ activity.user }}</small>
+              </div>
+              <small class="text-muted">{{ activity.time }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary" routerLink="/super-admin/manage-admins">
+              <i class="bi bi-people-fill me-2"></i>Manage Admins
+            </button>
+            <button class="btn btn-success" routerLink="/admin/dashboard">
+              <i class="bi bi-speedometer2 me-2"></i>View Admin Dashboard
+            </button>
+            <button class="btn btn-info" routerLink="/super-admin/reports">
+              <i class="bi bi-graph-up me-2"></i>View Reports
+            </button>
+            <button class="btn btn-warning" routerLink="/super-admin/settings">
+              <i class="bi bi-gear-fill me-2"></i>System Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Overview -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">System Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h6>Database Status</h6>
+              <div class="progress mb-3">
+                <div class="progress-bar bg-success" style="width: 85%">85%</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <h6>Server Load</h6>
+              <div class="progress mb-3">
+                <div class="progress-bar bg-warning" style="width: 60%">60%</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <h6>Storage Usage</h6>
+              <div class="progress mb-3">
+                <div class="progress-bar bg-info" style="width: 45%">45%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

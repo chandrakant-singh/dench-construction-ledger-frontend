@@ -3,6 +3,12 @@ export enum EndPoints {
   AUTH_LOGIN = 'auth/login',
   AUTH_REGISTER = 'auth/signup',
 
+  // Super Admin
+  SUPER_ADMIN_DASHBOARD = 'super-admin/dashboard',
+  SUPER_ADMIN_MANAGE_ADMINS = 'super-admin/manage-admins',
+  SUPER_ADMIN_SETTINGS = 'super-admin/settings',
+  SUPER_ADMIN_REPORTS = 'super-admin/reports',
+
   // Admin
   ADMIN_DASHBOARD = 'admin/dashboard',
   CREATE_SUPERVISOR = 'admin/create-supervisor',

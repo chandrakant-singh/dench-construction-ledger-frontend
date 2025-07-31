@@ -13,6 +13,12 @@ export const routes: Routes = [
     // canActivate: [AuthGuard]
   },
   {
+    path: 'super-admin',
+    loadChildren: () => import('./super-admin/super-admin-routing.module').then((m) => m.SuperAdminRoutingModule),
+    // canLoad: [AuthGuard],
+    // canActivate: [AuthGuard],
+  },
+  {
     path: 'admin',
     loadChildren: () => import('./admin/admin-routing.module').then((m) => m.AdminRoutingModule),
     // canLoad: [AuthGuard],
