@@ -28,8 +28,11 @@ import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.mod
   styleUrl: './list-stock-ledger.component.scss'
 })
 export class ListStockLedgerComponent {
+  isEditMode: boolean = true;
+  isAccordionOpen = false;
   searchTerm: string = '';
   filteredRows: StockLedgerEntry[] = []; // Copy for filtering
+  todayEntries: StockLedgerEntry[] = []; // Today's entries for edit mode
   lastStockLedger: StockLedgerEntry | null = null;
   private searchTimeout: any;
   // categories: StoreLedgerCategory = {
@@ -81,6 +84,10 @@ export class ListStockLedgerComponent {
     this.getCategories();
   }
 
+  toggleAccordion() {
+    this.isAccordionOpen = !this.isAccordionOpen;
+  }
+
   onSearchInputChange() {
     clearTimeout(this.searchTimeout);
     this.searchTimeout = setTimeout(() => this.filterRows(), 300);
@@ -88,12 +95,14 @@ export class ListStockLedgerComponent {
 
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
+    const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
+    
     if (!term) {
-      this.filteredRows = [...this.ledgerData];
+      this.filteredRows = dataToFilter;
       return;
     }
 
-    this.filteredRows = this.ledgerData.filter(row =>
+    this.filteredRows = dataToFilter.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(term)
       )
@@ -189,12 +198,26 @@ export class ListStockLedgerComponent {
     }
   }
 
+  public preview() {
+    this.isEditMode = !this.isEditMode;
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.LIST_STOCK_LEDGER]);
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
+    this.initializeComponent();
+  }
+
+  public cancelPreviewMode() {
+    this.isEditMode = !this.isEditMode;
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
+  }
+
   private getLedgerEntries() {
     this.stockLedgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
           this.ledgerData = ledgerEntries;
-          this.filteredRows = ledgerEntries;
+          this.todayEntries = this.getTodayEntries(ledgerEntries);
+          this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
           this.isLoading = false;
@@ -204,6 +227,44 @@ export class ListStockLedgerComponent {
         }
       }
     );
+  }
+
+  /**
+   * Filters entries created today
+   * @param entries Array of stock ledger entries
+   * @returns Array of entries created today
+   */
+  private getTodayEntries(entries: StockLedgerEntry[]): StockLedgerEntry[] {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const todayEntries = entries.filter(entry => {
+      if (!entry.createdAt) return false;
+      
+      let entryDate: Date;
+      try {
+        // Handle both Date objects and date strings
+        if (entry.createdAt instanceof Date) {
+          entryDate = entry.createdAt;
+        } else if (typeof entry.createdAt === 'string') {
+          entryDate = new Date(entry.createdAt);
+        } else if (typeof entry.createdAt === 'object' && entry.createdAt !== null && 'toDate' in entry.createdAt) {
+          // Handle Firestore Timestamp objects
+          entryDate = (entry.createdAt as any).toDate();
+        } else {
+          return false;
+        }
+        
+        return entryDate >= todayStart && entryDate <= todayEnd;
+      } catch (error) {
+        console.warn('Error parsing date for entry:', entry.id, error);
+        return false;
+      }
+    });
+
+    console.log(`Today's stock entries found: ${todayEntries.length} out of ${entries.length} total entries`);
+    return todayEntries;
   }
 
   private getLastStockLedger() {
@@ -237,9 +298,11 @@ export class ListStockLedgerComponent {
     console.log('Filters applied:', filters);
     // Call service or update table data
     const { mainCategory, subCategory } = filters;
+    const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
+    
     this.filteredRows = [];
-    if (mainCategory || mainCategory) {
-      this.filteredRows = this.ledgerData.filter(entry => {
+    if (mainCategory || subCategory) {
+      this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
 
         // Filter by mainCategory (item)
@@ -266,7 +329,7 @@ export class ListStockLedgerComponent {
   }
 
   resetFilters() {
-    this.filteredRows = [...this.ledgerData];
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
   }
 
   closeOffcanvas() {

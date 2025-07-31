@@ -61,12 +61,15 @@
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button p-2" [class.collapsed]="!isAccordionOpen" (click)="toggleAccordion()">
-                  <small>Recent Entries ({{filteredRows.length}})</small>
+                  <small>Today's Entries ({{todayEntries.length}})</small>
                 </button>
               </h2>
               <div class="accordion-collapse collapse" [class.show]="isAccordionOpen">
                 <div class="accordion-body p-0 m-0">
-                  <ngx-datatable class="bootstrap ledger-table"
+                  <div *ngIf="todayEntries.length === 0" class="text-center py-3 text-muted">
+                    <small>No entries created today</small>
+                  </div>
+                  <ngx-datatable *ngIf="todayEntries.length > 0" class="bootstrap ledger-table"
                       [rows]="filteredRows"
                       [columns]="columns"
                       [columnMode]="'standard'"

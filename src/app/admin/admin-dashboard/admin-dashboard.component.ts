@@ -35,6 +35,7 @@ export class AdminDashboardComponent {
   @ViewChild('creditDebit', { static: true }) creditDebit!: TemplateRef<any>;
 
   filteredRows: any[] = []; // Copy for filtering
+  todayEntries: any[] = []; // Today's entries for edit mode
   searchTerm: string = '';
   ledgerData: Array<LedgerEntry> = [];
   showLedgerForm: boolean = false;
@@ -111,12 +112,14 @@ export class AdminDashboardComponent {
 
   filterRows() {
     const term = this.searchTerm.toLowerCase().trim();
+    const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
+    
     if (!term) {
-      this.filteredRows = [...this.ledgerData];
+      this.filteredRows = dataToFilter;
       return;
     }
 
-    this.filteredRows = this.ledgerData.filter(row =>
+    this.filteredRows = dataToFilter.filter(row =>
       Object.values(row).some(val =>
         String(val).toLowerCase().includes(term)
       )
@@ -223,10 +226,15 @@ export class AdminDashboardComponent {
 
   public preview() {
     this.isEditMode = !this.isEditMode;
+    this.showLedgerForm = false;
+    this.router.navigate([EndPoints.ADMIN_DASHBOARD]);
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
+    this.initializeComponent();
   }
 
   public cancelPreviewMode() {
     this.isEditMode = !this.isEditMode;
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
   }
 
   private getLedgerEntries() {
@@ -234,7 +242,8 @@ export class AdminDashboardComponent {
       {
         next: (ledgerEntries: any) => {
           this.ledgerData = ledgerEntries;
-          this.filteredRows = ledgerEntries;
+          this.todayEntries = this.getTodayEntries(ledgerEntries);
+          this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
           // this.filterRows();
           console.log("Ledger : ", ledgerEntries);
           setTimeout(() => this.cdr.detectChanges());
@@ -245,6 +254,44 @@ export class AdminDashboardComponent {
         }
       }
     );
+  }
+
+  /**
+   * Filters entries created today
+   * @param entries Array of ledger entries
+   * @returns Array of entries created today
+   */
+  private getTodayEntries(entries: LedgerEntry[]): LedgerEntry[] {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const todayEntries = entries.filter(entry => {
+      if (!entry.createdAt) return false;
+      
+      let entryDate: Date;
+      try {
+        // Handle both Date objects and date strings
+        if (entry.createdAt instanceof Date) {
+          entryDate = entry.createdAt;
+        } else if (typeof entry.createdAt === 'string') {
+          entryDate = new Date(entry.createdAt);
+        } else if (typeof entry.createdAt === 'object' && entry.createdAt !== null && 'toDate' in entry.createdAt) {
+          // Handle Firestore Timestamp objects
+          entryDate = (entry.createdAt as any).toDate();
+        } else {
+          return false;
+        }
+        
+        return entryDate >= todayStart && entryDate <= todayEnd;
+      } catch (error) {
+        console.warn('Error parsing date for entry:', entry.id, error);
+        return false;
+      }
+    });
+
+    console.log(`Today's entries found: ${todayEntries.length} out of ${entries.length} total entries`);
+    return todayEntries;
   }
 
   private getLastStockLedger() {
@@ -293,9 +340,11 @@ export class AdminDashboardComponent {
     console.log('Filters applied:', filters);
     // Call service or update table data
     const { credit, debit, createdBy } = filters;
+    const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
+    
     this.filteredRows = [];
     if (credit || debit || createdBy) {
-      this.filteredRows = this.ledgerData.filter(entry => {
+      this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
 
         // Filter by credit (if specified)
@@ -337,7 +386,7 @@ export class AdminDashboardComponent {
   }
 
   resetFilters() {
-    this.filteredRows = [...this.ledgerData];
+    this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
   }
 
   closeOffcanvas() {

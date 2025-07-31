@@ -1,4 +1,5 @@
 <div class="row">
+  <!-- Search Input -->
   <div class="col-12 col-sm-8 col-md-4">
     <input
       type="text"
@@ -8,19 +9,94 @@
       (input)="onSearchInputChange()"
       />
   </div>
+  <!-- Action Buttons -->
   <div class="col mb-2">
-    <button class="btn btn-primary btn-sm float-end" (click)="createEntry()">Create Entry</button>
-    <button class="btn btn-warning btn-sm float-end mx-1 mx-sm-2" (click)="exportToExcel()">Download&nbsp;as&nbsp;Excel</button>
-    <button class="btn btn-primary btn-sm float-end" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterSidebar">Filter</button>
+    <div class="float-end">
+      <!-- Edit/View Toggle -->
+      <button class="btn btn-primary btn-sm mx-1"
+              type="button"
+              (click)="isEditMode ? preview() : cancelPreviewMode()">
+        {{ isEditMode ? 'View' : 'Back' }}
+      </button>
+
+      <!-- Create Entry Button -->
+      <button *ngIf="isEditMode"
+              class="btn btn-primary btn-sm mx-1"
+              type="button"
+              (click)="createEntry()">
+        Create Entry
+      </button>
+
+      <!-- Export Button -->
+      <button *ngIf="!isEditMode"
+              class="btn btn-warning btn-sm mx-1 mx-sm-2"
+              type="button"
+              (click)="exportToExcel()">
+        Download as Excel
+      </button>
+
+      <!-- Filter Button -->
+      <button class="btn btn-primary btn-sm mx-1"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#filterSidebar">
+        Filter
+      </button>
+    </div>
   </div>
+
+  <!-- Main Content -->
   <div class="col-12" *ngIf="(filteredRows && ledgerData.length) || !isLoading; else loadingTemplate">
-    <app-ngx-datatable
-      [rows]="filteredRows"
-      [columns]="ledgerColumns"
-      header="Stock Ledger"
-      [headerHelperText]="`Balance:  ${this.lastStockLedger?.balance || 0}`"
-      (rowEdit)="onEditLedger($event)">
-    </app-ngx-datatable>
+    <div class="card mb-3">
+      <!-- Card Header -->
+      <div class="card-header d-flex justify-content-between align-items-center p-2">
+        <strong class="small">Stock Ledger</strong>
+        <strong class="text-muted small">Balance:
+          <span *ngIf="this.lastStockLedger" [ngClass]="this.lastStockLedger.balance > 0 ? 'text-success' : 'text-danger'">{{this.lastStockLedger.balance || 0}}</span>
+        </strong>
+      </div>
+
+      <!-- Card Body with Data Table -->
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <!-- Edit Mode: Accordion Table -->
+          <div class="accordion" id="stockLedgerAccordion" *ngIf="isEditMode; else fullTable">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button p-2" [class.collapsed]="!isAccordionOpen" (click)="toggleAccordion()">
+                  <small>Today's Entries ({{todayEntries.length}})</small>
+                </button>
+              </h2>
+              <div class="accordion-collapse collapse" [class.show]="isAccordionOpen">
+                <div class="accordion-body p-0 m-0">
+                  <div *ngIf="todayEntries.length === 0" class="text-center py-3 text-muted">
+                    <small>No entries created today</small>
+                  </div>
+                  <app-ngx-datatable *ngIf="todayEntries.length > 0"
+                    [rows]="filteredRows"
+                    [columns]="ledgerColumns"
+                    header=""
+                    [headerHelperText]="''"
+                    (rowEdit)="onEditLedger($event)">
+                  </app-ngx-datatable>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Mode: Full Table -->
+          <ng-template #fullTable>
+            <app-ngx-datatable
+              [rows]="filteredRows"
+              [columns]="ledgerColumns"
+              header=""
+              [headerHelperText]="''"
+              (rowEdit)="onEditLedger($event)">
+            </app-ngx-datatable>
+          </ng-template>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

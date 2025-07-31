@@ -13,12 +13,57 @@ body {
   border-radius: 0.2rem !important;
 }
 
+// Global datatable styling to avoid repetition across components
+.ngx-datatable.bootstrap {
+  font-size: 14px;
+}
+
+.ledger-table {
+  border: 1px solid #dee2e6; /* outer border */
+  border-radius: 0.25rem;
+  font-size: 12px !important;
+}
+
+.ledger-table .datatable-header-cell,
+.ledger-table .datatable-body-cell {
+  border-right: 1px solid #dee2e6; /* vertical cell border */
+  padding: 0.4rem !important;
+}
+
+.ledger-table .datatable-header-cell:last-child,
+.ledger-table .datatable-body-cell:last-child {
+  border-right: none; /* remove border from last column */
+}
+
+.ledger-table .datatable-row-center,
+.ledger-table .datatable-body-row,
+.ledger-table .datatable-header {
+  border-bottom: 1px solid #dee2e6; /* horizontal row border */
+}
+
+.ledger-table .datatable-row-center:last-child {
+  border-bottom: none; /* optional: remove border from last row */
+}
+
+@media (max-width: 768px) {
+  ngx-datatable {
+    font-size: 12px !important;
+  }
+
+  .datatable-header,
+  .datatable-body-row {
+    white-space: nowrap;
+  }
+
+  .datatable-body-cell {
+    padding: 4px 8px !important;
+  }
+}
 
 label.required::after {
   content: ' *';
   color: red;
 }
-
 
 /* Add this in your component CSS or global styles */
 .custom-offcanvas-width {
