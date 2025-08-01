@@ -135,7 +135,7 @@
   </div>
   <div class="offcanvas-body">
     <app-generic-filter
-      [filters]="['mainCategory', 'party', 'subCategory']"
+      [filters]="['mainCategory', 'party', 'subCategory', 'dateFilter']"
       [options]="{ mainCategory: mainCategory, party: parties, subCategory: subCategory }"
       (filterChanged)="onFilterChanged($event)">
     </app-generic-filter>

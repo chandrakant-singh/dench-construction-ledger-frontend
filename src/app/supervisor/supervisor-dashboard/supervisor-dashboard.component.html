@@ -169,7 +169,7 @@
   </div>
   <div class="offcanvas-body">
     <app-generic-filter
-      [filters]="['credit', 'debit', 'createdBy']"
+      [filters]="['credit', 'debit', 'createdBy', 'dateFilter']"
       [options]="{ users: users }"
       (filterChanged)="onFilterChanged($event)">
     </app-generic-filter>

@@ -58,6 +58,30 @@
         <option *ngFor="let status of options.statusOptions || []" [value]="status.value">{{ status.label }}</option>
       </select>
     </div>
+
+    <div class="col-12" *ngIf="field === 'dateFilter'">
+      <label class="form-label">Date Filter</label>
+      <select class="form-select form-select-sm" [formControlName]="'dateFilterType'" (change)="onDateFilterTypeChange($event)">
+        <option value="">All Dates</option>
+        <option value="today">Today</option>
+        <option value="last7days">Last 7 Days</option>
+        <option value="custom">Custom Date Range</option>
+      </select>
+      
+      <!-- Custom Date Range Inputs -->
+      <div *ngIf="filterForm.get('dateFilterType')?.value === 'custom'" class="mt-2">
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label text-muted small">From Date</label>
+            <input type="date" class="form-control form-control-sm" [formControlName]="'fromDate'">
+          </div>
+          <div class="col-6">
+            <label class="form-label text-muted small">To Date</label>
+            <input type="date" class="form-control form-control-sm" [formControlName]="'toDate'">
+          </div>
+        </div>
+      </div>
+    </div>
   </ng-container>
 
   <!-- Buttons -->

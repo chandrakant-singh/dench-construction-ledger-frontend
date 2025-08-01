@@ -314,11 +314,11 @@ export class AdminDashboardComponent {
   onFilterChanged(filters: any) {
     console.log('Filters applied:', filters);
     // Call service or update table data
-    const { credit, debit, createdBy, status } = filters;
+    const { credit, debit, createdBy, status, dateFilter } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
     
     this.filteredRows = [];
-    if (credit || debit || createdBy || status) {
+    if (credit || debit || createdBy || status || dateFilter) {
       this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
 
@@ -354,6 +354,13 @@ export class AdminDashboardComponent {
         // Filter by status (if specified)
         if (status) {
           if (entry.status !== status) {
+            isMatch = false;
+          }
+        }
+
+        // Filter by date
+        if (dateFilter && dateFilter.type !== 'all') {
+          if (!this.isDateInRange(entry, dateFilter)) {
             isMatch = false;
           }
         }
@@ -426,5 +433,32 @@ export class AdminDashboardComponent {
 
   onExportCompleted(type: string) {
     console.log(`${type} export completed successfully`);
+  }
+
+  private isDateInRange(entry: LedgerEntry, dateFilter: any): boolean {
+    if (!dateFilter.fromDate || !dateFilter.toDate) {
+      return true; // If no valid date range, don't filter
+    }
+
+    // Convert entry date to Date object for comparison
+    let entryDate: Date;
+    if (entry.createdAt instanceof Date) {
+      entryDate = entry.createdAt;
+    } else if (typeof entry.createdAt === 'string') {
+      entryDate = new Date(entry.createdAt);
+    } else if (entry.createdAt && typeof entry.createdAt === 'object' && (entry.createdAt as any).toDate) {
+      // Handle Firestore Timestamp
+      entryDate = (entry.createdAt as any).toDate();
+    } else {
+      // Fallback to entry.date if createdAt is not available
+      entryDate = new Date(entry.date);
+    }
+
+    // Convert to YYYY-MM-DD format for comparison
+    const entryDateStr = entryDate.toISOString().split('T')[0];
+    const fromDateStr = dateFilter.fromDate;
+    const toDateStr = dateFilter.toDate;
+
+    return entryDateStr >= fromDateStr && entryDateStr <= toDateStr;
   }
 }
