@@ -22,13 +22,14 @@
         Create Entry
       </button>
 
-      <!-- Export Button -->
-      <button *ngIf="!isEditMode"
-              class="btn btn-warning btn-sm mx-1 mx-sm-2"
-              type="button"
-              (click)="exportToExcel()">
-        Download as Excel
-      </button>
+      <!-- Export Dropdown -->
+      <app-export-dropdown 
+        *ngIf="!isEditMode"
+        [data]="filteredRows"
+        [config]="currentExportConfig"
+        (exportStarted)="onExportStarted($event)"
+        (exportCompleted)="onExportCompleted($event)">
+      </app-export-dropdown>
 
       <!-- Filter Button -->
       <button class="btn btn-primary btn-sm mx-1"

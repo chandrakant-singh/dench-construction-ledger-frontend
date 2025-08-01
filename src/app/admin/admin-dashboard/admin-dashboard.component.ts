@@ -4,8 +4,6 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as XLSX from 'xlsx-js-style';
-import * as FileSaver from 'file-saver';
 import { Offcanvas } from 'bootstrap';
 
 import { EndPoints } from '../../shared/constants/endpoints';
@@ -14,6 +12,7 @@ import { LedgerEntry, LedgerEntryReq } from '../../core/models/ledger.model';
 import { StorageUtils } from '../../core/utils/storage.utils';
 import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 import { AppUser } from '../../core/models/user.model';
 
 @Component({
@@ -23,7 +22,8 @@ import { AppUser } from '../../core/models/user.model';
     FormsModule,
     NgxDatatableModule,
     CreateLedgerEntryComponent,
-    GenericFilterComponent
+    GenericFilterComponent,
+    ExportDropdownComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
@@ -33,6 +33,24 @@ export class AdminDashboardComponent {
   @ViewChild('statusTpl', { static: true }) statusTpl!: TemplateRef<any>;
   @ViewChild('actionTpl', { static: true }) actionTpl!: TemplateRef<any>;
   @ViewChild('creditDebit', { static: true }) creditDebit!: TemplateRef<any>;
+
+  // Export configuration
+  exportConfig: ExportConfig = {
+    filename: 'Expenditure-Ledger',
+    title: 'Expenditure Ledger Report',
+    showBalance: true,
+    columns: [
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Balance', key: 'balance', width: 18, align: 'right' },
+      { header: 'Credit', key: 'credit', width: 18, align: 'right' },
+      { header: 'Debit', key: 'debit', width: 18, align: 'right' },
+      { header: 'Description', key: 'description', width: 35 },
+      { header: 'Hint By', key: 'hintBy', width: 20 },
+      { header: 'Payment Mode', key: 'paymentMode', width: 20 },
+      { header: 'Debited By', key: 'debitedByName', width: 20 },
+      { header: 'Status', key: 'status', width: 15 }
+    ]
+  };
 
   filteredRows: any[] = []; // Copy for filtering
   todayEntries: any[] = []; // Today's entries for edit mode
@@ -174,55 +192,7 @@ export class AdminDashboardComponent {
       })
   }
 
-  exportToExcel(): void {
-    const exportData = this.filteredRows.map(row => ({
-      'Date': row.date,
-      'Balance': row.balance,
-      'Credit': row.credit,
-      'Debit': row.debit,
-      'Description': row.description,
-      'Hint By': row.hintBy,
-      'Payment Mode': row.paymentMode,
-      'Deposited By': row.depositedByName,
-      'Debited By': row.debitedByName,
-      'Approved By': row.approvedByName,
-    }));
 
-
-    const fileName = `LedgerData-${new Date().toLocaleDateString()}.xlsx`;
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
-
-    const range = XLSX.utils.decode_range(worksheet['!ref']!);
-
-    // Apply styling: Bold headers and borders for all cells
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        const cell = worksheet[cellAddress];
-        if (!cell) continue;
-
-        cell.s = {
-          font: R === 0 ? { bold: true } : {}, // Bold header row
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } },
-          },
-        };
-      }
-    }
-
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'data': worksheet },
-      SheetNames: ['data']
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    FileSaver.saveAs(data, fileName);
-  }
 
   public preview() {
     this.isEditMode = !this.isEditMode;
@@ -424,5 +394,25 @@ export class AdminDashboardComponent {
     const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
     const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
     return totalCreditSum - totalDebitSum;
+  }
+
+  get currentBalance(): number | null {
+    return this.isEditMode ? this.todaysBalance : this.lastLedger?.balance || null;
+  }
+
+  get currentExportConfig(): ExportConfig {
+    return {
+      ...this.exportConfig,
+      currentBalance: this.currentBalance
+    };
+  }
+
+  // Export event handlers
+  onExportStarted(type: string) {
+    console.log(`Starting ${type} export...`);
+  }
+
+  onExportCompleted(type: string) {
+    console.log(`${type} export completed successfully`);
   }
 }

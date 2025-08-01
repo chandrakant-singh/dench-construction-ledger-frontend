@@ -1,12 +1,11 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-// import * as XLSX from 'xlsx';
-import * as XLSX from 'xlsx-js-style';
-import * as FileSaver from 'file-saver';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
+import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 import { EndPoints } from '../../shared/constants/endpoints';
 import { BalanceLedgerEntry, BalanceLedgerItem } from '../../core/models/balance-ledger';
 import { BalanceLedgerService } from '../../core/services/balance-ledger.service';
@@ -22,7 +21,8 @@ import { Offcanvas } from 'bootstrap';
     FormsModule,
     NgxDatatableComponent,
     CreateBalanceLedgerComponent,
-    GenericFilterComponent
+    GenericFilterComponent,
+    ExportDropdownComponent
   ],
   templateUrl: './list-balance-ledger.component.html',
   styleUrl: './list-balance-ledger.component.scss'
@@ -52,6 +52,23 @@ export class ListBalanceLedgerComponent {
     { name: 'Balance', prop: 'balance' },
     { name: 'Description', prop: 'description' },
   ];
+
+  // Export configuration
+  exportConfig: ExportConfig = {
+    filename: 'Balance-Ledger',
+    title: 'Balance Ledger Report',
+    showBalance: true,
+    columns: [
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Item', key: 'itemName', width: 25 },
+      { header: 'Quantity', key: 'quantity', width: 18, align: 'right' },
+      { header: 'Rate', key: 'rate', width: 18, align: 'right' },
+      { header: 'Amount', key: 'amount', width: 20, align: 'right' },
+      { header: 'Credit', key: 'credit', width: 18, align: 'right' },
+      { header: 'Balance', key: 'balance', width: 20, align: 'right' },
+      { header: 'Description', key: 'description', width: 45 }
+    ]
+  };
 
   constructor(
     private readonly router: Router,
@@ -115,73 +132,7 @@ export class ListBalanceLedgerComponent {
     this.showHideCreateAndUpdateForm();
   }
 
-  // exportToExcel(): void {
-  //   const exportData = this.filteredRows.map(row => ({
-  //     'Date': row.date,
-  //     'Item': row.itemName,
-  //     'Quantity': row.quantity,
-  //     'Rate': row.rate,
-  //     'Amount': row.amount,
-  //     'Credit': row.credit,
-  //     'Balance': row.balance,
-  //     'Description': row.description,
-  //   }));
 
-  //   const fileName = `LedgerData-${new Date().toLocaleDateString()}.xlsx`;
-  //   const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData); // or your data array
-  //   const workbook: XLSX.WorkBook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-  //   const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-  //   const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  //   FileSaver.saveAs(data, fileName);
-  // }
-  exportToExcel(): void {
-    const exportData = this.filteredRows.map(row => ({
-      'Date': row.date,
-      'Item': row.itemName,
-      'Quantity': row.quantity,
-      'Rate': row.rate,
-      'Amount': row.amount,
-      'Credit': row.credit,
-      'Balance': row.balance,
-      'Description': row.description,
-    }));
-
-    const fileName = `Balance-Ledger-${new Date().toLocaleDateString()}.xlsx`;
-
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
-
-    const range = XLSX.utils.decode_range(worksheet['!ref']!);
-
-    // Apply styling: Bold headers and borders for all cells
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        const cell = worksheet[cellAddress];
-        if (!cell) continue;
-
-        cell.s = {
-          font: R === 0 ? { bold: true } : {}, // Bold header row
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } },
-          },
-        };
-      }
-    }
-
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'data': worksheet },
-      SheetNames: ['data']
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    FileSaver.saveAs(data, fileName);
-  }
 
 
   closeLedgerForm(event: boolean) {
@@ -381,5 +332,25 @@ export class ListBalanceLedgerComponent {
     const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => acc + curr.amount, 0);
     const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => acc + curr.credit, 0);
     return totalCreditSum - totalDebitSum;
+  }
+
+  get currentBalance(): number | null {
+    return this.isEditMode ? this.todaysBalance : this.lastLedger?.balance || null;
+  }
+
+  get currentExportConfig(): ExportConfig {
+    return {
+      ...this.exportConfig,
+      currentBalance: this.currentBalance
+    };
+  }
+
+  // Export event handlers
+  onExportStarted(type: string) {
+    console.log(`Starting ${type} export...`);
+  }
+
+  onExportCompleted(type: string) {
+    console.log(`${type} export completed successfully`);
   }
 }

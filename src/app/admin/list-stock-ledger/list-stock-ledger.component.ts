@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as XLSX from 'xlsx-js-style';
-import * as FileSaver from 'file-saver';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
+import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 import { EndPoints } from '../../shared/constants/endpoints';
 import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
@@ -22,7 +22,8 @@ import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.mod
     FormsModule,
     NgxDatatableComponent,
     CreateStockLedgerComponent,
-    GenericFilterComponent
+    GenericFilterComponent,
+    ExportDropdownComponent
   ],
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
@@ -61,6 +62,22 @@ export class ListStockLedgerComponent {
     { name: 'Stock Out', prop: 'stockOut' },
     { name: 'Balance', prop: 'balance' },
   ];
+
+  // Export configuration
+  exportConfig: ExportConfig = {
+    filename: 'Stock-Ledger',
+    title: 'Stock Ledger Report',
+    showBalance: true,
+    columns: [
+      { header: 'Date', key: 'date', width: 25 },
+      { header: 'Category', key: 'mainCategory', width: 30 },
+      { header: 'Party', key: 'subCategory', width: 30 },
+      { header: 'Stock In', key: 'stockIn', width: 25, align: 'right' },
+      { header: 'Stock Out', key: 'stockOut', width: 25, align: 'right' },
+      { header: 'Balance', key: 'balance', width: 25, align: 'right' },
+      { header: 'Description', key: 'description', width: 40 }
+    ]
+  };
 
   constructor(
     private readonly router: Router,
@@ -126,51 +143,7 @@ export class ListStockLedgerComponent {
     this.showHideCreateAndUpdateForm();
   }
 
-  exportToExcel(): void {
-    const exportData = this.filteredRows.map(row => ({
-      'Date': row.date,
-      'Category': row.mainCategory,
-      'Party': row.subCategory,
-      'Credit': row.stockIn,
-      'Debit': row.stockOut,
-      'Balance': row.balance,
-      'Description': row.description,
-    }));
 
-
-    const fileName = `Stock-Ledger-${new Date().toLocaleDateString()}.xlsx`;
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData); // or your data array
-    const range = XLSX.utils.decode_range(worksheet['!ref']!);
-
-    // Apply styling: Bold headers and borders for all cells
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        const cell = worksheet[cellAddress];
-        if (!cell) continue;
-
-        cell.s = {
-          font: R === 0 ? { bold: true } : {}, // Bold header row
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } },
-          },
-        };
-      }
-    }
-
-    const workbook: XLSX.WorkBook = {
-      Sheets: { 'data': worksheet },
-      SheetNames: ['data']
-    };
-
-    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-
-    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    FileSaver.saveAs(data, fileName);
-  }
 
   public getCategories() {
     this.stockLedgerCategoryService.getCategories().subscribe({
@@ -367,5 +340,25 @@ export class ListStockLedgerComponent {
     const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockIn, 0);
     const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockOut, 0);
     return totalCreditSum - totalDebitSum;
+  }
+
+  get currentBalance(): number | null {
+    return this.isEditMode ? this.todaysBalance : this.lastStockLedger?.balance || null;
+  }
+
+  get currentExportConfig(): ExportConfig {
+    return {
+      ...this.exportConfig,
+      currentBalance: this.currentBalance
+    };
+  }
+
+  // Export event handlers
+  onExportStarted(type: string) {
+    console.log(`Starting ${type} export...`);
+  }
+
+  onExportCompleted(type: string) {
+    console.log(`${type} export completed successfully`);
   }
 }

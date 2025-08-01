@@ -13,6 +13,7 @@ import { AppUser } from '../../core/models/user.model';
 import { UserService } from '../../core/services/user.service';
 import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 
 @Component({
   selector: 'app-supervisor-dashboard',
@@ -21,7 +22,8 @@ import { GenericFilterComponent } from '../../shared/components/generic-filter/g
     FormsModule,
     NgxDatatableModule,
     CreateLedgerEntryComponent,
-    GenericFilterComponent
+    GenericFilterComponent,
+    ExportDropdownComponent
   ],
   templateUrl: './supervisor-dashboard.component.html',
   styleUrl: './supervisor-dashboard.component.scss'
@@ -45,6 +47,26 @@ export class SupervisorDashboardComponent implements AfterViewInit {
 
   columns: any = [];
   isLoading: boolean = false;
+
+  // Export configuration
+  exportConfig: ExportConfig = {
+    filename: 'Supervisor-Ledger',
+    title: 'Supervisor Ledger Report',
+    showBalance: true,
+    showExcel: false,
+    showPDF: true,
+    columns: [
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Balance', key: 'balance', width: 18, align: 'right' },
+      { header: 'Credit', key: 'credit', width: 18, align: 'right' },
+      { header: 'Debit', key: 'debit', width: 18, align: 'right' },
+      { header: 'Description', key: 'description', width: 35 },
+      { header: 'Hint By', key: 'hintBy', width: 20 },
+      { header: 'Payment Mode', key: 'paymentMode', width: 20 },
+      { header: 'Debited By', key: 'debitedByName', width: 20 },
+      { header: 'Status', key: 'status', width: 15 }
+    ]
+  };
 
   constructor(
     private readonly userService: UserService,
@@ -339,5 +361,25 @@ export class SupervisorDashboardComponent implements AfterViewInit {
     const totalCreditSum =  this.ledgerData.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
     const totalDebitSum =  this.ledgerData.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
     return totalCreditSum - totalDebitSum;
+  }
+
+  get currentBalance(): number | null {
+    return this.isEditMode ? this.todaysBalance : this.lastLedger?.balance || null;
+  }
+
+  get currentExportConfig(): ExportConfig {
+    return {
+      ...this.exportConfig,
+      currentBalance: this.currentBalance
+    };
+  }
+
+  // Export event handlers
+  onExportStarted(type: string) {
+    console.log(`Starting ${type} export...`);
+  }
+
+  onExportCompleted(type: string) {
+    console.log(`${type} export completed successfully`);
   }
 }

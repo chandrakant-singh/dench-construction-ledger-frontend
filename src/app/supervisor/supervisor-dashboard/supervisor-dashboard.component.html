@@ -26,6 +26,15 @@
         Create Entry
       </button>
 
+      <!-- Export Dropdown -->
+      <app-export-dropdown 
+        *ngIf="!isEditMode"
+        [data]="filteredRows"
+        [config]="currentExportConfig"
+        (exportStarted)="onExportStarted($event)"
+        (exportCompleted)="onExportCompleted($event)">
+      </app-export-dropdown>
+
       <!-- Filter Button -->
       <button class="btn btn-primary btn-sm mx-1"
               type="button"
