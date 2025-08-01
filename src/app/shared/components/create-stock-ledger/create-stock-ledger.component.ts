@@ -24,16 +24,21 @@ declare var bootstrap: any;
 })
 export class CreateStockLedgerComponent {
   @ViewChild('createMainCategory') createMainCategoryTemplate!: TemplateRef<any>;
+  @ViewChild('createParty') createPartyTemplate!: TemplateRef<any>;
   @ViewChild('createSubCategory') createSubCategoryTemplate!: TemplateRef<any>;
+  @ViewChild('manageMainCategory') manageMainCategoryTemplate!: TemplateRef<any>;
+  @ViewChild('manageParty') managePartyTemplate!: TemplateRef<any>;
+  @ViewChild('manageSubCategory') manageSubCategoryTemplate!: TemplateRef<any>;
 
   @Output() closeLedgerForm = new EventEmitter<boolean>();
 
   dialogTemplate!: TemplateRef<any>;
   dialogTitle: string = '';
-  dialogType: 'main' | 'sub' | null = null;
+  dialogType: 'main' | 'party' | 'sub' | 'manage-main' | 'manage-party' | 'manage-sub' | null = null;
 
   stockLedgerForm!: FormGroup;
   mainCategoryForm!: FormGroup;
+  partyForm!: FormGroup;
   subCategoryForm!: FormGroup;
 
   appUser!: AppUser;
@@ -53,6 +58,7 @@ export class CreateStockLedgerComponent {
   ) {
     this.initializeForm();
     this.initializeMainCategoryForm();
+    this.initializePartyForm();
     this.initializeSubCategoryForm();
   }
 
@@ -120,7 +126,7 @@ export class CreateStockLedgerComponent {
 
   public createCategory(category: string) {
     this.stockLedgerCategoryService.createCategory({
-      category: { [category]: [null] },
+      category: { [category]: {} },
       createdBy: this.appUser.uid,
       updatedBy: this.appUser.uid,
       createdAt: new Date(),
@@ -152,6 +158,7 @@ export class CreateStockLedgerComponent {
       complete: () => {
         this.isLoading = false;
         this.subCategoryForm.reset();
+        this.partyForm.reset();
         this.mainCategoryForm.reset();
       }
     })
@@ -177,13 +184,36 @@ export class CreateStockLedgerComponent {
     return Object.keys(this.existingStockLedgerCategory?.category || {});
   }
 
-  public get mainSubCategories(): [string | null] {
-    return this.existingStockLedgerCategory?.category[this.stockLedgerForm.get('mainCategory')?.value] || [];
+  public get parties(): string[] {
+    const mainCategory = this.stockLedgerForm.get('mainCategory')?.value;
+    if (!mainCategory || !this.existingStockLedgerCategory?.category[mainCategory]) {
+      return [];
+    }
+    return Object.keys(this.existingStockLedgerCategory.category[mainCategory]);
+  }
+
+  public get subCategories(): string[] {
+    const mainCategory = this.stockLedgerForm.get('mainCategory')?.value;
+    const party = this.stockLedgerForm.get('party')?.value;
+    if (!mainCategory || !party || !this.existingStockLedgerCategory?.category[mainCategory]?.[party]) {
+      return [];
+    }
+    return this.existingStockLedgerCategory.category[mainCategory][party] || [];
+  }
+
+  public getPartiesForCategory(category: string): string[] {
+    return Object.keys(this.existingStockLedgerCategory?.category[category] || {});
+  }
+
+  public getSubCategoriesForParty(category: string, party: string): string[] {
+    return this.existingStockLedgerCategory?.category[category]?.[party] || [];
   }
 
   public handleDialogConfirm(event: any) {
     if (this.dialogType === 'main' && event) {
       this.confirmMainCategory();
+    } else if (this.dialogType === 'party' && event) {
+      this.confirmParty();
     } else if (this.dialogType === 'sub' && event) {
       this.confirmSubCategory();
     }
@@ -198,15 +228,27 @@ export class CreateStockLedgerComponent {
     }
   }
 
-  openDialog(type: 'main' | 'sub') {
+  openDialog(type: 'main' | 'party' | 'sub' | 'manage-main' | 'manage-party' | 'manage-sub') {
     this.dialogType = type;
 
     if (type === 'main') {
       this.dialogTemplate = this.createMainCategoryTemplate;
       this.dialogTitle = 'Add Main Category';
-    } else {
-      this.dialogTemplate = this.createSubCategoryTemplate;
+    } else if (type === 'party') {
+      this.dialogTemplate = this.createPartyTemplate;
       this.dialogTitle = 'Add Party';
+    } else if (type === 'sub') {
+      this.dialogTemplate = this.createSubCategoryTemplate;
+      this.dialogTitle = 'Add Sub Category';
+    } else if (type === 'manage-main') {
+      this.dialogTemplate = this.manageMainCategoryTemplate;
+      this.dialogTitle = 'Manage Main Categories';
+    } else if (type === 'manage-party') {
+      this.dialogTemplate = this.managePartyTemplate;
+      this.dialogTitle = 'Manage Parties';
+    } else if (type === 'manage-sub') {
+      this.dialogTemplate = this.manageSubCategoryTemplate;
+      this.dialogTitle = 'Manage Sub Categories';
     }
 
     // Manually trigger modal open if required
@@ -222,26 +264,101 @@ export class CreateStockLedgerComponent {
     console.log('Saving Main Category:', newCategory);
     if (this.existingStockLedgerCategory) {
       const payload = this.existingStockLedgerCategory;
-      payload.category[newCategory] = [null];
+      payload.category[newCategory] = {};
       this.updateCategory(payload);
     } else {
       this.createCategory(newCategory);
     }
   }
 
+  confirmParty() {
+    if (this.partyForm.invalid) return;
+
+    const newParty = this.partyForm.get('party')?.value;
+    const selectedCategory = this.partyForm.get('category')?.value;
+    console.log('Saving Party:', newParty, 'in Category:', selectedCategory);
+    if (this.existingStockLedgerCategory) {
+      const payload = this.existingStockLedgerCategory;
+      if (!payload.category[selectedCategory]) {
+        payload.category[selectedCategory] = {};
+      }
+      payload.category[selectedCategory][newParty] = [];
+      this.updateCategory(payload);
+    }
+  }
+
   confirmSubCategory() {
-    if (this.mainCategoryForm.invalid) return;
+    if (this.subCategoryForm.invalid) return;
 
     const newSubCategory = this.subCategoryForm.get('subCategory')?.value;
-    const newCategory = this.subCategoryForm.get('category')?.value;
-    // Save logic
+    const selectedCategory = this.subCategoryForm.get('category')?.value;
+    const selectedParty = this.subCategoryForm.get('party')?.value;
     console.log('Saving Sub Category:', newSubCategory);
     if (this.existingStockLedgerCategory) {
       const payload = this.existingStockLedgerCategory;
-      payload.category[newCategory].push(newSubCategory);
-      payload.category[newCategory] = payload.category[newCategory].filter(Boolean) as [string | null];
+      if (!payload.category[selectedCategory]) {
+        payload.category[selectedCategory] = {};
+      }
+      if (!payload.category[selectedCategory][selectedParty]) {
+        payload.category[selectedCategory][selectedParty] = [];
+      }
+      payload.category[selectedCategory][selectedParty]!.push(newSubCategory);
       this.updateCategory(payload);
     }
+  }
+
+  deleteMainCategory(categoryToDelete: string) {
+    if (!this.existingStockLedgerCategory) return;
+    
+    const confirmDelete = confirm(`Are you sure you want to delete the category "${categoryToDelete}"? This will also delete all parties and sub-categories under this category.`);
+    if (!confirmDelete) return;
+
+    const payload = { ...this.existingStockLedgerCategory };
+    delete payload.category[categoryToDelete];
+    
+    // Reset form if the deleted category was selected
+    if (this.stockLedgerForm.get('mainCategory')?.value === categoryToDelete) {
+      this.stockLedgerForm.patchValue({ mainCategory: null, party: null, subCategory: null });
+      this.stockLedgerForm.get('party')?.disable();
+      this.stockLedgerForm.get('subCategory')?.disable();
+    }
+    
+    this.updateCategory(payload);
+  }
+
+  deleteParty(mainCat: string, partyToDelete: string) {
+    if (!this.existingStockLedgerCategory) return;
+    
+    const confirmDelete = confirm(`Are you sure you want to delete the party "${partyToDelete}"? This will also delete all sub-categories under this party.`);
+    if (!confirmDelete) return;
+
+    const payload = { ...this.existingStockLedgerCategory };
+    delete payload.category[mainCat][partyToDelete];
+    
+    // Reset form if the deleted party was selected
+    if (this.stockLedgerForm.get('party')?.value === partyToDelete) {
+      this.stockLedgerForm.patchValue({ party: null, subCategory: null });
+      this.stockLedgerForm.get('subCategory')?.disable();
+    }
+    
+    this.updateCategory(payload);
+  }
+
+  deleteSubCategory(mainCat: string, party: string, subCatToDelete: string) {
+    if (!this.existingStockLedgerCategory) return;
+    
+    const confirmDelete = confirm(`Are you sure you want to delete the sub-category "${subCatToDelete}"?`);
+    if (!confirmDelete) return;
+
+    const payload = { ...this.existingStockLedgerCategory };
+    payload.category[mainCat][party] = payload.category[mainCat][party]!.filter(sub => sub !== subCatToDelete);
+    
+    // Reset subCategory if the deleted sub-category was selected
+    if (this.stockLedgerForm.get('subCategory')?.value === subCatToDelete) {
+      this.stockLedgerForm.patchValue({ subCategory: null });
+    }
+    
+    this.updateCategory(payload);
   }
   // END
 
@@ -295,9 +412,20 @@ export class CreateStockLedgerComponent {
     if (this.existingLedger) {
       this.stockLedgerForm.get('stockIn')?.disable();
       this.stockLedgerForm.get('stockOut')?.disable();
+      
+      // Enable party and subCategory for existing ledger (they have values)
+      if (this.existingLedger.mainCategory) {
+        this.stockLedgerForm.get('party')?.enable();
+      }
+      if (this.existingLedger.party) {
+        this.stockLedgerForm.get('subCategory')?.enable();
+      }
     } else {
       this.stockLedgerForm.get('stockIn')?.enable();
       this.stockLedgerForm.get('stockOut')?.enable();
+      
+      // For new entries, keep the cascading logic
+      // Party and subCategory start disabled and are enabled by selection
     }
 
     this.stockLedgerForm.updateValueAndValidity();
@@ -308,7 +436,34 @@ export class CreateStockLedgerComponent {
   }
 
   onMainCategoryChange(event: Event) {
-    console.log('Main Category:', (event.target as HTMLSelectElement).value);
+    const selectedValue = (event.target as HTMLSelectElement).value;
+    console.log('Main Category:', selectedValue);
+    
+    // Reset dependent fields when main category changes
+    this.stockLedgerForm.patchValue({ party: null, subCategory: null });
+    
+    // Enable/disable party field based on main category selection
+    if (selectedValue && selectedValue !== 'null') {
+      this.stockLedgerForm.get('party')?.enable();
+    } else {
+      this.stockLedgerForm.get('party')?.disable();
+      this.stockLedgerForm.get('subCategory')?.disable();
+    }
+  }
+
+  onPartyChange(event: Event) {
+    const selectedValue = (event.target as HTMLSelectElement).value;
+    console.log('Party:', selectedValue);
+    
+    // Reset sub-category when party changes
+    this.stockLedgerForm.patchValue({ subCategory: null });
+    
+    // Enable/disable sub-category field based on party selection
+    if (selectedValue && selectedValue !== 'null') {
+      this.stockLedgerForm.get('subCategory')?.enable();
+    } else {
+      this.stockLedgerForm.get('subCategory')?.disable();
+    }
   }
 
   calculateBalance() {
@@ -344,7 +499,8 @@ export class CreateStockLedgerComponent {
   private initializeForm() {
     this.stockLedgerForm = this.fb.group({
       mainCategory: [null, Validators.required],
-      subCategory: [null, Validators.required],
+      party: [{ value: null, disabled: true }, Validators.required],
+      subCategory: [{ value: null, disabled: true }, Validators.required],
       stockIn: [''],
       stockOut: [''],
       balance: [{ value: 0, disabled: true }],
@@ -359,9 +515,17 @@ export class CreateStockLedgerComponent {
     });
   }
 
+  private initializePartyForm() {
+    this.partyForm = this.fb.group({
+      category: ['', Validators.required],
+      party: ['', Validators.required],
+    });
+  }
+
   private initializeSubCategoryForm() {
     this.subCategoryForm = this.fb.group({
       category: ['', Validators.required],
+      party: ['', Validators.required],
       subCategory: ['', Validators.required],
     });
   }
@@ -380,6 +544,7 @@ export class CreateStockLedgerComponent {
   private resetAllTheForms() {
     this.initializeForm();
     this.initializeMainCategoryForm();
+    this.initializePartyForm();
     this.initializeSubCategoryForm();
   }
 }

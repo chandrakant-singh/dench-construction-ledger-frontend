@@ -21,6 +21,7 @@
     "@swimlane/ngx-datatable": "^21.0.0",
     "@types/jspdf": "^2.0.0",
     "bootstrap": "^5.3.5",
+    "bootstrap-icons": "^1.13.1",
     "file-saver": "^2.0.5",
     "firebase": "^11.6.0",
     "jspdf": "^3.0.1",

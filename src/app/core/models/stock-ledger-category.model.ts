@@ -1,6 +1,10 @@
 export interface StoreLedgerCategory {
   id?: string,
-  category: { [key: string]: [string | null] };
+  category: { 
+    [mainCategory: string]: {
+      [party: string]: string[] | null
+    }
+  };
   createdBy: string;
   updatedBy: string;
   createdAt: Date;

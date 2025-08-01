@@ -47,7 +47,8 @@ export class ListStockLedgerComponent {
   // };
 
   mainCategory: string[] = [];
-  subCategory: (string | null)[] = [];
+  parties: string[] = [];
+  subCategory: string[] = [];
 
   ledgerData: Array<StockLedgerEntry> = [];
   showLedgerForm: boolean = false;
@@ -149,9 +150,29 @@ export class ListStockLedgerComponent {
     this.stockLedgerCategoryService.getCategories().subscribe({
       next: (categories) => {
         console.log('Categories:', categories);
-        // this.categories = categories[0];
-        this.mainCategory = categories && categories[0] && Object.keys(categories[0].category);
-        this.subCategory = categories && categories[0] && (Object.values(categories[0].category)?.filter(value => value !== null).flat() ?? []);
+        if (categories && categories[0]) {
+          this.mainCategory = Object.keys(categories[0].category);
+          
+          // Extract all parties from all categories
+          this.parties = [];
+          Object.values(categories[0].category).forEach(categoryParties => {
+            if (categoryParties) {
+              this.parties.push(...Object.keys(categoryParties));
+            }
+          });
+          
+          // Extract all sub-categories from all parties
+          this.subCategory = [];
+          Object.values(categories[0].category).forEach(categoryParties => {
+            if (categoryParties) {
+              Object.values(categoryParties).forEach(partySubCategories => {
+                if (partySubCategories && Array.isArray(partySubCategories)) {
+                  this.subCategory.push(...partySubCategories);
+                }
+              });
+            }
+          });
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -270,17 +291,24 @@ export class ListStockLedgerComponent {
   onFilterChanged(filters: any) {
     console.log('Filters applied:', filters);
     // Call service or update table data
-    const { mainCategory, subCategory } = filters;
+    const { mainCategory, party, subCategory } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
 
     this.filteredRows = [];
-    if (mainCategory || subCategory) {
+    if (mainCategory || party || subCategory) {
       this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
 
-        // Filter by mainCategory (item)
+        // Filter by mainCategory
         if (mainCategory) {
           if (entry.mainCategory !== mainCategory) {
+            isMatch = false;
+          }
+        }
+
+        // Filter by party
+        if (party) {
+          if (entry.party !== party) {
             isMatch = false;
           }
         }

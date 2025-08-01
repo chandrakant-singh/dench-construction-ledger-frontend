@@ -17,8 +17,16 @@
       </select>
     </div>
 
-    <div class="col-12" *ngIf="field === 'subCategory'">
+    <div class="col-12" *ngIf="field === 'party'">
       <label class="form-label">Party</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let item of options.party || []" [value]="item">{{ item }}</option>
+      </select>
+    </div>
+
+    <div class="col-12" *ngIf="field === 'subCategory'">
+      <label class="form-label">Sub Category</label>
       <select class="form-select form-select-sm" [formControlName]="field">
         <option value="">All</option>
         <option *ngFor="let item of options.subCategory || []" [value]="item">{{ item }}</option>

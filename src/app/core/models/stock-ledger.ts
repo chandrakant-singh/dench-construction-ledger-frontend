@@ -1,6 +1,7 @@
 export interface StockLedgerEntry {
   id?: string;
   mainCategory: string;
+  party: string;
   subCategory: string;
   stockIn: number;
   stockOut: number;
