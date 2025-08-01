@@ -4,6 +4,7 @@ export interface BalanceLedgerEntry {
   itemId: string;
   quantity: number;
   rate: number;
+  unit: string;
   amount: number;
   credit: number;
   balance: number;
@@ -22,6 +23,7 @@ export interface BalanceLedgerEntryReq {
   itemId: string;
   quantity: number;
   rate: number;
+  unit: string;
   amount: number;
   credit: number;
   balance: number;

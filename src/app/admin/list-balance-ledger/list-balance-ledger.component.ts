@@ -47,6 +47,7 @@ export class ListBalanceLedgerComponent {
     { name: 'Item', prop: 'itemName' },
     { name: 'Quantity', prop: 'quantity' },
     { name: 'Rate', prop: 'rate' },
+    { name: 'Unit', prop: 'unit' },
     { name: 'Amount', prop: 'amount' },
     { name: 'Credit', prop: 'credit' },
     { name: 'Balance', prop: 'balance' },
@@ -59,14 +60,15 @@ export class ListBalanceLedgerComponent {
     title: 'Balance Ledger Report',
     showBalance: true,
     columns: [
-      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Date', key: 'date', width: 18 },
       { header: 'Item', key: 'itemName', width: 25 },
-      { header: 'Quantity', key: 'quantity', width: 18, align: 'right' },
-      { header: 'Rate', key: 'rate', width: 18, align: 'right' },
-      { header: 'Amount', key: 'amount', width: 20, align: 'right' },
-      { header: 'Credit', key: 'credit', width: 18, align: 'right' },
-      { header: 'Balance', key: 'balance', width: 20, align: 'right' },
-      { header: 'Description', key: 'description', width: 45 }
+      { header: 'Quantity', key: 'quantity', width: 16, align: 'right' },
+      { header: 'Rate', key: 'rate', width: 16, align: 'right' },
+      { header: 'Unit', key: 'unit', width: 15 },
+      { header: 'Amount', key: 'amount', width: 18, align: 'right' },
+      { header: 'Credit', key: 'credit', width: 16, align: 'right' },
+      { header: 'Balance', key: 'balance', width: 18, align: 'right' },
+      { header: 'Description', key: 'description', width: 40 }
     ]
   };
 

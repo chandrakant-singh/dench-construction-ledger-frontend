@@ -39,6 +39,32 @@ export class CreateBalanceLedgerComponent {
   isLoading: boolean = false;
   balanceLedgerItems: BalanceLedgerItem[] = [];
 
+  // Unit options for dropdown
+  unitOptions = [
+    { value: '', label: 'Select Unit' },
+    { value: 'per kg', label: 'Per Kilogram' },
+    { value: 'per gram', label: 'Per Gram' },
+    { value: 'per ton', label: 'Per Ton' },
+    { value: 'per piece', label: 'Per Piece' },
+    { value: 'per item', label: 'Per Item' },
+    { value: 'per hour', label: 'Per Hour' },
+    { value: 'per day', label: 'Per Day' },
+    { value: 'per month', label: 'Per Month' },
+    { value: 'per meter', label: 'Per Meter' },
+    { value: 'per foot', label: 'Per Foot' },
+    { value: 'per inch', label: 'Per Inch' },
+    { value: 'per liter', label: 'Per Liter' },
+    { value: 'per gallon', label: 'Per Gallon' },
+    { value: 'per square meter', label: 'Per Square Meter' },
+    { value: 'per square foot', label: 'Per Square Foot' },
+    { value: 'per cubic meter', label: 'Per Cubic Meter' },
+    { value: 'per cubic foot', label: 'Per Cubic Foot' },
+    { value: 'per box', label: 'Per Box' },
+    { value: 'per bag', label: 'Per Bag' },
+    { value: 'per dozen', label: 'Per Dozen' },
+    { value: 'per unit', label: 'Per Unit' }
+  ];
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly balanceLedgerService: BalanceLedgerService,
@@ -305,6 +331,7 @@ export class CreateBalanceLedgerComponent {
       itemName: [''],
       quantity: [''],
       rate: [''],
+      unit: [''],
       amount: [{ value: 0, disabled: true }],
       credit: [''],
       balance: [{ value: 0, disabled: true }],
