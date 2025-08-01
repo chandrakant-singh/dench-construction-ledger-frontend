@@ -58,6 +58,11 @@ export class AdminDashboardComponent {
   ledgerData: Array<LedgerEntry> = [];
   showLedgerForm: boolean = false;
   users: AppUser[] = [];
+  statusOptions = [
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
+  ];
 
   private searchTimeout: any;
   lastLedger: LedgerEntry | null = null;
@@ -309,11 +314,11 @@ export class AdminDashboardComponent {
   onFilterChanged(filters: any) {
     console.log('Filters applied:', filters);
     // Call service or update table data
-    const { credit, debit, createdBy } = filters;
+    const { credit, debit, createdBy, status } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
     
     this.filteredRows = [];
-    if (credit || debit || createdBy) {
+    if (credit || debit || createdBy || status) {
       this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
 
@@ -339,9 +344,16 @@ export class AdminDashboardComponent {
           }
         }
 
-        // Filter by itemId (item)
+        // Filter by createdBy (if specified)
         if (createdBy) {
           if (entry.createdBy !== createdBy.trim()) {
+            isMatch = false;
+          }
+        }
+
+        // Filter by status (if specified)
+        if (status) {
+          if (entry.status !== status) {
             isMatch = false;
           }
         }

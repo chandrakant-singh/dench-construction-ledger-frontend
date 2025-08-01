@@ -185,7 +185,7 @@
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
   <div class="offcanvas-body">
-    <app-generic-filter [filters]="['credit', 'debit', 'createdBy']" [options]="{ users: users }"
+    <app-generic-filter [filters]="['credit', 'debit', 'createdBy', 'status']" [options]="{ users: users, statusOptions: statusOptions }"
       (filterChanged)="onFilterChanged($event)">
     </app-generic-filter>
   </div>

@@ -42,6 +42,14 @@
         <option *ngFor="let user of options.users || []" [value]="user.uid">{{ user.name }}</option>
       </select>
     </div>
+
+    <div class="col-12" *ngIf="field === 'status'">
+      <label class="form-label">Status</label>
+      <select class="form-select form-select-sm" [formControlName]="field">
+        <option value="">All</option>
+        <option *ngFor="let status of options.statusOptions || []" [value]="status.value">{{ status.label }}</option>
+      </select>
+    </div>
   </ng-container>
 
   <!-- Buttons -->
