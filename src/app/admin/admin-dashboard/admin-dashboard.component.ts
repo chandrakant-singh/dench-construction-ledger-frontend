@@ -44,7 +44,7 @@ export class AdminDashboardComponent {
       { header: 'Balance', key: 'balance', width: 18, align: 'right' },
       { header: 'Credit', key: 'credit', width: 18, align: 'right' },
       { header: 'Debit', key: 'debit', width: 18, align: 'right' },
-      { header: 'Description', key: 'description', width: 35 },
+      // { header: 'Description', key: 'description', width: 35 },
       { header: 'Hint By', key: 'hintBy', width: 20 },
       { header: 'Payment Mode', key: 'paymentMode', width: 20 },
       { header: 'Debited By', key: 'debitedByName', width: 20 },
@@ -95,7 +95,7 @@ export class AdminDashboardComponent {
         cellTemplate: this.creditDebit,
         width: 80
       },
-      { name: 'Description', prop: 'description'},
+      // { name: 'Description', prop: 'description'},
       { name: 'Hint By', prop: 'hintBy', width: 120},
       { name: 'Payment Mode', prop: 'paymentMode', width: 120},
       { name: 'Deposited By', prop: 'depositedByName', width: 120},

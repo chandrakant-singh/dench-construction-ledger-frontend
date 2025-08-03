@@ -63,7 +63,7 @@ export class ListStockLedgerComponent {
     { name: 'Stock In', prop: 'stockIn' },
     { name: 'Stock Out', prop: 'stockOut' },
     { name: 'Balance', prop: 'balance' },
-    { name: 'Description', prop: 'description' },
+    // { name: 'Description', prop: 'description' },
   ];
 
   // Export configuration
@@ -79,7 +79,7 @@ export class ListStockLedgerComponent {
       { header: 'Stock In', key: 'stockIn', width: 20, align: 'right' },
       { header: 'Stock Out', key: 'stockOut', width: 20, align: 'right' },
       { header: 'Balance', key: 'balance', width: 20, align: 'right' },
-      { header: 'Description', key: 'description', width: 35 }
+      // { header: 'Description', key: 'description', width: 35 }
     ]
   };
 

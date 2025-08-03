@@ -40,18 +40,25 @@ export class ListBalanceLedgerComponent {
   showLedgerForm: boolean = false;
   items: BalanceLedgerItem[] = [];
 
+  // Filter options
+  parties: string[] = [];
+  mainCategories: string[] = [];
+  subCategories: string[] = [];
+
   isLoading: boolean = false;
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
-    { name: 'Item', prop: 'itemName' },
+    { name: 'Main Category', prop: 'mainCategory' },
+    { name: 'Sub Category', prop: 'subCategory' },
+    { name: 'Party', prop: 'party' },
     { name: 'Quantity', prop: 'quantity' },
     { name: 'Rate', prop: 'rate' },
     { name: 'Unit', prop: 'unit' },
     { name: 'Amount', prop: 'amount' },
     { name: 'Credit', prop: 'credit' },
     { name: 'Balance', prop: 'balance' },
-    { name: 'Description', prop: 'description' },
+    // { name: 'Description', prop: 'description' },
   ];
 
   // Export configuration
@@ -68,7 +75,7 @@ export class ListBalanceLedgerComponent {
       { header: 'Amount', key: 'amount', width: 18, align: 'right' },
       { header: 'Credit', key: 'credit', width: 16, align: 'right' },
       { header: 'Balance', key: 'balance', width: 18, align: 'right' },
-      { header: 'Description', key: 'description', width: 40 }
+      // { header: 'Description', key: 'description', width: 40 }
     ]
   };
 
@@ -162,13 +169,28 @@ export class ListBalanceLedgerComponent {
   onFilterChanged(filters: any) {
     console.log('Filters applied:', filters);
     // Call service or update table data
-    const { credit, item, dateFilter } = filters;
+    const { party, mainCategory, subCategory, credit, item, dateFilter } = filters;
     const dataToFilter = this.isEditMode ? this.todayEntries : this.ledgerData;
 
     this.filteredRows = [];
-    if (credit || item || dateFilter) {
+    if (party || mainCategory || subCategory || credit || item || dateFilter) {
       this.filteredRows = dataToFilter.filter(entry => {
         let isMatch = true;
+
+        // Filter by party
+        if (party && entry.party !== party) {
+          isMatch = false;
+        }
+
+        // Filter by mainCategory
+        if (mainCategory && entry.mainCategory !== mainCategory) {
+          isMatch = false;
+        }
+
+        // Filter by subCategory
+        if (subCategory && entry.subCategory !== subCategory) {
+          isMatch = false;
+        }
 
         // Filter by credit (if specified)
         if (credit !== null && credit !== undefined && credit !== '') {
@@ -244,6 +266,7 @@ export class ListBalanceLedgerComponent {
       next: (items) => {
         console.log('Items:', items);
         this.items = items;
+        this.populateFilterOptions();
         this.isLoading = false;
       },
       error: (error) => {
@@ -254,6 +277,23 @@ export class ListBalanceLedgerComponent {
     })
   }
 
+  private populateFilterOptions(): void {
+    // Extract unique values from ledger data for filter options
+    const uniqueParties = new Set<string>();
+    const uniqueMainCategories = new Set<string>();
+    const uniqueSubCategories = new Set<string>();
+
+    this.ledgerData.forEach(entry => {
+      if (entry.party) uniqueParties.add(entry.party);
+      if (entry.mainCategory) uniqueMainCategories.add(entry.mainCategory);
+      if (entry.subCategory) uniqueSubCategories.add(entry.subCategory);
+    });
+
+    this.parties = Array.from(uniqueParties).sort();
+    this.mainCategories = Array.from(uniqueMainCategories).sort();
+    this.subCategories = Array.from(uniqueSubCategories).sort();
+  }
+
   private getLedgerEntries() {
     this.balanceLedgerService.getLedgerEntries().subscribe(
       {
@@ -262,6 +302,7 @@ export class ListBalanceLedgerComponent {
           this.todayEntries = this.getTodayEntries(ledgerEntries);
           this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
           console.log("Ledger : ", ledgerEntries);
+          this.populateFilterOptions(); // Populate filter options after data is loaded
           setTimeout(() => this.cdr.detectChanges());
           this.isLoading = false;
         },
