@@ -4,20 +4,66 @@
   </div>
   <div class="card-body" *ngIf="!isLoading; else loadingTemplate">
     <form [formGroup]="balanceLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>
+      <!-- Party -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Party</label>
+        <div class="d-flex mb-2">
+          <select class="form-select" formControlName="party" (change)="onPartyChange($event)">
+            <option value="">Select Party</option>
+            <option *ngFor="let party of getAllParties()" [value]="party">{{ party }}</option>
+          </select>
+          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
+            <i class="bi bi-plus"></i>
+          </button>
+          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('party')?.touched && balanceLedgerForm.get('party')?.invalid">
+          Party is required
+        </div>
+      </div>
+
       <!-- Main Category -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label required">Select Item</label>
-        <div class="d-flex">
-          <select class="form-select" formControlName="itemId" (change)="onMainCategoryChange($event)">
-            <option value="">Select Item</option>
-            <option *ngFor="let item of items" [value]="item.id">{{ item.name }}</option>
+        <label class="form-label required">Main Category</label>
+        <div class="d-flex mb-2">
+          <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
+            <option value="">Select Main Category</option>
+            <option *ngFor="let category of getMainCategoriesForParty(balanceLedgerForm.get('party')?.value)" [value]="category">{{ category }}</option>
           </select>
-          <button class="btn btn-warning" type="button btn-sm" (click)="openDialog('item')" type="button">+</button>
+          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Main Category">
+            <i class="bi bi-plus"></i>
+          </button>
+          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-main')" title="Manage Main Categories">
+            <i class="bi bi-gear"></i>
+          </button>
         </div>
-
         <div class="invalid-feedback"
-          *ngIf="balanceLedgerForm.get('itemId')?.touched && balanceLedgerForm.get('itemId')?.invalid">
-          Item is required
+          *ngIf="balanceLedgerForm.get('mainCategory')?.touched && balanceLedgerForm.get('mainCategory')?.invalid">
+          Main Category is required
+        </div>
+      </div>
+
+      <!-- Sub Category -->
+      <div class="col-lg-4 col-md-6">
+        <label class="form-label required">Sub Category</label>
+        <div class="d-flex mb-2">
+          <select class="form-select" formControlName="subCategory" (change)="onSubCategoryChange($event)">
+            <option value="">Select Sub Category</option>
+            <option *ngFor="let subCategory of getSubCategoriesForPartyAndMainCategory(balanceLedgerForm.get('party')?.value, balanceLedgerForm.get('mainCategory')?.value)" [value]="subCategory">{{ subCategory }}</option>
+          </select>
+          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
+            <i class="bi bi-plus"></i>
+          </button>
+          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-sub')" title="Manage Sub Categories">
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('subCategory')?.touched && balanceLedgerForm.get('subCategory')?.invalid">
+          Sub Category is required
         </div>
       </div>
 
@@ -114,4 +160,77 @@
       <input class="form-control" formControlName="itemName" placeholder="Enter Item Name" />
     </div>
   </form>
+</ng-template>
+
+<!-- Template passed to modal for creating main category -->
+<ng-template #createMainCategory>
+  <form [formGroup]="mainCategoryForm">
+    <div class="mb-3">
+      <label class="form-label">Main Category Name</label>
+      <input class="form-control" formControlName="category" placeholder="Enter Main Category Name" />
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template passed to modal for creating party -->
+<ng-template #createParty>
+  <form [formGroup]="partyForm">
+    <div class="mb-3">
+      <label class="form-label">Party Name</label>
+      <input class="form-control" formControlName="party" placeholder="Enter Party Name" />
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template passed to modal for creating sub category -->
+<ng-template #createSubCategory>
+  <form [formGroup]="subCategoryForm">
+    <div class="mb-3">
+      <label class="form-label">Main Category</label>
+      <select class="form-select" formControlName="mainCategory">
+        <option value="">Select Main Category</option>
+        <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Sub Category Name</label>
+      <input class="form-control" formControlName="subCategory" placeholder="Enter Sub Category Name" />
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template for managing main categories -->
+<ng-template #manageMainCategory>
+  <div class="container-fluid">
+    <div class="mb-3">
+      <h6 class="text-muted">Existing Main Categories</h6>
+      <div class="text-center py-3 text-muted">
+        <small>Main categories will be managed here</small>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Template for managing parties -->
+<ng-template #manageParty>
+  <div class="container-fluid">
+    <div class="mb-3">
+      <h6 class="text-muted">Existing Parties</h6>
+      <div class="text-center py-3 text-muted">
+        <small>Parties will be managed here</small>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Template for managing sub categories -->
+<ng-template #manageSubCategory>
+  <div class="container-fluid">
+    <div class="mb-3">
+      <h6 class="text-muted">Existing Sub Categories</h6>
+      <div class="text-center py-3 text-muted">
+        <small>Sub categories will be managed here</small>
+      </div>
+    </div>
+  </div>
 </ng-template>

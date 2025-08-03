@@ -14,6 +14,10 @@ import { LoadingButtonComponent } from '../loading-button/loading-button.compone
 import { DialogComponent } from "../dialog/dialog.component";
 import { StockLedgerCategoryService } from '../../../core/services/stock-ledger-category.service';
 import { StoreLedgerCategory } from '../../../core/models/stock-ledger-category.model';
+import { HierarchyService } from '../../../core/services/hierarchy.service';
+import { Party } from '../../../core/models/party.model';
+import { MainCategory } from '../../../core/models/main-category.model';
+import { SubCategory } from '../../../core/models/sub-category.model';
 declare var bootstrap: any;
 
 @Component({
@@ -48,13 +52,19 @@ export class CreateStockLedgerComponent {
   isLoading: boolean = false;
   existingStockLedgerCategory!: StoreLedgerCategory;
 
+  // Private properties for optimized queries
+  private _parties: Party[] = [];
+  private _subCategories: SubCategory[] = [];
+  private _mainCategories: MainCategory[] = [];
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly stockLedgerService: StockLedgerService,
     private readonly userService: UserService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly stockLedgerCategoryService: StockLedgerCategoryService
+    private readonly stockLedgerCategoryService: StockLedgerCategoryService,
+    private readonly hierarchyService: HierarchyService
   ) {
     this.initializeForm();
     this.initializeMainCategoryForm();
@@ -71,6 +81,7 @@ export class CreateStockLedgerComponent {
       this.existingLedger = null;
       this.getCategories();
       this.initializeFormData();
+      this.loadHierarchyData();
     });
   }
 
@@ -180,33 +191,76 @@ export class CreateStockLedgerComponent {
     })
   }
 
-  public get mainCategories(): string[] {
-    return Object.keys(this.existingStockLedgerCategory?.category || {});
+  // Load hierarchy data
+  private loadHierarchyData() {
+    this.hierarchyService.getHierarchyData().subscribe({
+      next: (data) => {
+        this._mainCategories = data.mainCategories;
+        this._subCategories = data.subCategories;
+        this._parties = data.parties;
+      },
+      error: (error) => {
+        console.error('Error loading hierarchy data:', error);
+      }
+    });
   }
 
-  public get parties(): string[] {
-    const mainCategory = this.stockLedgerForm.get('mainCategory')?.value;
-    if (!mainCategory || !this.existingStockLedgerCategory?.category[mainCategory]) {
-      return [];
+  public get mainCategories(): MainCategory[] {
+    return this._mainCategories || [];
+  }
+
+  public get subCategories(): SubCategory[] {
+    return this._subCategories || [];
+  }
+
+  public get parties(): Party[] {
+    return this._parties || [];
+  }
+
+  public getSubCategoriesForMainCategory(mainCategoryId: string): SubCategory[] {
+    return this._subCategories || [];
+  }
+
+  public getPartiesForMainCategoryAndSubCategory(mainCategoryId: string, subCategoryId: string): Party[] {
+    return this._parties || [];
+  }
+
+  // Load sub categories for a specific main category
+  private loadSubCategoriesForMainCategory(mainCategoryName: string): void {
+    const mainCategory = this._mainCategories.find(cat => cat.name === mainCategoryName);
+    if (!mainCategory) {
+      this._subCategories = [];
+      return;
     }
-    return Object.keys(this.existingStockLedgerCategory.category[mainCategory]);
+
+    this.hierarchyService.getSubCategoriesForMainCategoryOptimized(mainCategory.id!).subscribe({
+      next: (subCategories: SubCategory[]) => {
+        this._subCategories = subCategories;
+      },
+      error: (error: any) => {
+        console.error('Error loading sub categories for main category:', error);
+        this._subCategories = [];
+      }
+    });
   }
 
-  public get subCategories(): string[] {
-    const mainCategory = this.stockLedgerForm.get('mainCategory')?.value;
-    const party = this.stockLedgerForm.get('party')?.value;
-    if (!mainCategory || !party || !this.existingStockLedgerCategory?.category[mainCategory]?.[party]) {
-      return [];
+  // Load parties for a specific main category
+  private loadPartiesForMainCategory(mainCategoryName: string): void {
+    const mainCategory = this._mainCategories.find(cat => cat.name === mainCategoryName);
+    if (!mainCategory) {
+      this._parties = [];
+      return;
     }
-    return this.existingStockLedgerCategory.category[mainCategory][party] || [];
-  }
 
-  public getPartiesForCategory(category: string): string[] {
-    return Object.keys(this.existingStockLedgerCategory?.category[category] || {});
-  }
-
-  public getSubCategoriesForParty(category: string, party: string): string[] {
-    return this.existingStockLedgerCategory?.category[category]?.[party] || [];
+    this.hierarchyService.getPartiesForMainCategoryOptimized(mainCategory.id!).subscribe({
+      next: (parties: Party[]) => {
+        this._parties = parties;
+      },
+      error: (error: any) => {
+        console.error('Error loading parties for main category:', error);
+        this._parties = [];
+      }
+    });
   }
 
   public handleDialogConfirm(event: any) {
@@ -260,15 +314,29 @@ export class CreateStockLedgerComponent {
     if (this.mainCategoryForm.invalid) return;
 
     const newCategory = this.mainCategoryForm.get('category')?.value;
-    // Save logic
     console.log('Saving Main Category:', newCategory);
-    if (this.existingStockLedgerCategory) {
-      const payload = this.existingStockLedgerCategory;
-      payload.category[newCategory] = {};
-      this.updateCategory(payload);
-    } else {
-      this.createCategory(newCategory);
-    }
+    
+    // Use the new hierarchy service approach
+    this.hierarchyService.createMainCategory({
+      name: newCategory,
+      createdBy: this.appUser.uid,
+      updatedBy: this.appUser.uid,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdByName: this.appUser.name
+    }).subscribe({
+      next: (id) => {
+        console.log('Main Category created with ID:', id);
+        this.loadHierarchyData(); // Reload hierarchy data
+        this.mainCategoryForm.reset();
+      },
+      error: (error) => {
+        console.error('Error creating main category:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   confirmParty() {
@@ -277,14 +345,49 @@ export class CreateStockLedgerComponent {
     const newParty = this.partyForm.get('party')?.value;
     const selectedCategory = this.partyForm.get('category')?.value;
     console.log('Saving Party:', newParty, 'in Category:', selectedCategory);
-    if (this.existingStockLedgerCategory) {
-      const payload = this.existingStockLedgerCategory;
-      if (!payload.category[selectedCategory]) {
-        payload.category[selectedCategory] = {};
+    
+    // Use the new hierarchy service approach
+    this.hierarchyService.createParty({
+      name: newParty,
+      createdBy: this.appUser.uid,
+      updatedBy: this.appUser.uid,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdByName: this.appUser.name
+    }).subscribe({
+      next: (partyId) => {
+        console.log('Party created with ID:', partyId);
+        
+        // Create the mapping between party and main category
+        const mainCategory = this._mainCategories.find(cat => cat.name === selectedCategory);
+        if (mainCategory) {
+          this.hierarchyService.createPartyMainCategoryMap({
+            partyId: partyId,
+            mainCategoryId: mainCategory.id!,
+            createdBy: this.appUser.uid,
+            updatedBy: this.appUser.uid,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            createdByName: this.appUser.name
+          }).subscribe({
+            next: (mappingId) => {
+              console.log('Party-MainCategory mapping created with ID:', mappingId);
+              this.loadHierarchyData(); // Reload hierarchy data
+              this.partyForm.reset();
+            },
+            error: (error) => {
+              console.error('Error creating party-main category mapping:', error);
+            }
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error creating party:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
       }
-      payload.category[selectedCategory][newParty] = [];
-      this.updateCategory(payload);
-    }
+    });
   }
 
   confirmSubCategory() {
@@ -292,72 +395,86 @@ export class CreateStockLedgerComponent {
 
     const newSubCategory = this.subCategoryForm.get('subCategory')?.value;
     const selectedCategory = this.subCategoryForm.get('category')?.value;
-    const selectedParty = this.subCategoryForm.get('party')?.value;
-    console.log('Saving Sub Category:', newSubCategory);
-    if (this.existingStockLedgerCategory) {
-      const payload = this.existingStockLedgerCategory;
-      if (!payload.category[selectedCategory]) {
-        payload.category[selectedCategory] = {};
-      }
-      if (!payload.category[selectedCategory][selectedParty]) {
-        payload.category[selectedCategory][selectedParty] = [];
-      }
-      payload.category[selectedCategory][selectedParty]!.push(newSubCategory);
-      this.updateCategory(payload);
+    console.log('Saving Sub Category:', newSubCategory, 'for Main Category:', selectedCategory);
+    
+    // Use the new hierarchy service approach
+    const mainCategory = this._mainCategories.find(cat => cat.name === selectedCategory);
+    if (mainCategory) {
+      this.hierarchyService.createSubCategory({
+        name: newSubCategory,
+        mainCategoryId: mainCategory.id!,
+        createdBy: this.appUser.uid,
+        updatedBy: this.appUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdByName: this.appUser.name
+      }).subscribe({
+        next: (id) => {
+          console.log('Sub Category created with ID:', id);
+          this.loadHierarchyData(); // Reload hierarchy data
+          this.subCategoryForm.reset();
+        },
+        error: (error) => {
+          console.error('Error creating sub category:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
+      });
     }
   }
 
   deleteMainCategory(categoryToDelete: string) {
     if (!this.existingStockLedgerCategory) return;
-    
+
     const confirmDelete = confirm(`Are you sure you want to delete the category "${categoryToDelete}"? This will also delete all parties and sub-categories under this category.`);
     if (!confirmDelete) return;
 
     const payload = { ...this.existingStockLedgerCategory };
     delete payload.category[categoryToDelete];
-    
+
     // Reset form if the deleted category was selected
     if (this.stockLedgerForm.get('mainCategory')?.value === categoryToDelete) {
       this.stockLedgerForm.patchValue({ mainCategory: null, party: null, subCategory: null });
       this.stockLedgerForm.get('party')?.disable();
       this.stockLedgerForm.get('subCategory')?.disable();
     }
-    
+
     this.updateCategory(payload);
   }
 
   deleteParty(mainCat: string, partyToDelete: string) {
     if (!this.existingStockLedgerCategory) return;
-    
+
     const confirmDelete = confirm(`Are you sure you want to delete the party "${partyToDelete}"? This will also delete all sub-categories under this party.`);
     if (!confirmDelete) return;
 
     const payload = { ...this.existingStockLedgerCategory };
     delete payload.category[mainCat][partyToDelete];
-    
+
     // Reset form if the deleted party was selected
     if (this.stockLedgerForm.get('party')?.value === partyToDelete) {
       this.stockLedgerForm.patchValue({ party: null, subCategory: null });
       this.stockLedgerForm.get('subCategory')?.disable();
     }
-    
+
     this.updateCategory(payload);
   }
 
   deleteSubCategory(mainCat: string, party: string, subCatToDelete: string) {
     if (!this.existingStockLedgerCategory) return;
-    
+
     const confirmDelete = confirm(`Are you sure you want to delete the sub-category "${subCatToDelete}"?`);
     if (!confirmDelete) return;
 
     const payload = { ...this.existingStockLedgerCategory };
     payload.category[mainCat][party] = payload.category[mainCat][party]!.filter(sub => sub !== subCatToDelete);
-    
+
     // Reset subCategory if the deleted sub-category was selected
     if (this.stockLedgerForm.get('subCategory')?.value === subCatToDelete) {
       this.stockLedgerForm.patchValue({ subCategory: null });
     }
-    
+
     this.updateCategory(payload);
   }
   // END
@@ -412,20 +529,26 @@ export class CreateStockLedgerComponent {
     if (this.existingLedger) {
       this.stockLedgerForm.get('stockIn')?.disable();
       this.stockLedgerForm.get('stockOut')?.disable();
-      
-      // Enable party and subCategory for existing ledger (they have values)
+
+      // Enable fields for existing ledger (they have values)
       if (this.existingLedger.mainCategory) {
-        this.stockLedgerForm.get('party')?.enable();
+        this.stockLedgerForm.get('mainCategory')?.enable();
+      }
+      if (this.existingLedger.subCategory) {
+        this.stockLedgerForm.get('subCategory')?.enable();
       }
       if (this.existingLedger.party) {
-        this.stockLedgerForm.get('subCategory')?.enable();
+        this.stockLedgerForm.get('party')?.enable();
       }
     } else {
       this.stockLedgerForm.get('stockIn')?.enable();
       this.stockLedgerForm.get('stockOut')?.enable();
-      
+
       // For new entries, keep the cascading logic
-      // Party and subCategory start disabled and are enabled by selection
+      // Main category starts enabled, sub category and party start disabled
+      this.stockLedgerForm.get('mainCategory')?.enable();
+      this.stockLedgerForm.get('subCategory')?.disable();
+      this.stockLedgerForm.get('party')?.disable();
     }
 
     this.stockLedgerForm.updateValueAndValidity();
@@ -438,31 +561,41 @@ export class CreateStockLedgerComponent {
   onMainCategoryChange(event: Event) {
     const selectedValue = (event.target as HTMLSelectElement).value;
     console.log('Main Category:', selectedValue);
-    
+
     // Reset dependent fields when main category changes
-    this.stockLedgerForm.patchValue({ party: null, subCategory: null });
-    
-    // Enable/disable party field based on main category selection
+    this.stockLedgerForm.patchValue({ subCategory: null, party: null });
+
+    // Enable/disable sub category field based on main category selection
     if (selectedValue && selectedValue !== 'null') {
-      this.stockLedgerForm.get('party')?.enable();
+      this.stockLedgerForm.get('subCategory')?.enable();
+      // Load sub categories for the selected main category
+      this.loadSubCategoriesForMainCategory(selectedValue);
     } else {
-      this.stockLedgerForm.get('party')?.disable();
       this.stockLedgerForm.get('subCategory')?.disable();
+      this.stockLedgerForm.get('party')?.disable();
+      this._subCategories = [];
+      this._parties = [];
     }
   }
 
-  onPartyChange(event: Event) {
+  onSubCategoryChange(event: Event) {
     const selectedValue = (event.target as HTMLSelectElement).value;
-    console.log('Party:', selectedValue);
-    
-    // Reset sub-category when party changes
-    this.stockLedgerForm.patchValue({ subCategory: null });
-    
-    // Enable/disable sub-category field based on party selection
+    console.log('Sub Category:', selectedValue);
+
+    // Reset party when sub category changes
+    this.stockLedgerForm.patchValue({ party: null });
+
+    // Enable/disable party field based on sub category selection
     if (selectedValue && selectedValue !== 'null') {
-      this.stockLedgerForm.get('subCategory')?.enable();
+      this.stockLedgerForm.get('party')?.enable();
+      // Load parties for the selected main category
+      const mainCategory = this.stockLedgerForm.get('mainCategory')?.value;
+      if (mainCategory) {
+        this.loadPartiesForMainCategory(mainCategory);
+      }
     } else {
-      this.stockLedgerForm.get('subCategory')?.disable();
+      this.stockLedgerForm.get('party')?.disable();
+      this._parties = [];
     }
   }
 
@@ -499,8 +632,8 @@ export class CreateStockLedgerComponent {
   private initializeForm() {
     this.stockLedgerForm = this.fb.group({
       mainCategory: [null, Validators.required],
-      party: [{ value: null, disabled: true }, Validators.required],
       subCategory: [{ value: null, disabled: true }, Validators.required],
+      party: [{ value: null, disabled: true }, Validators.required],
       stockIn: [''],
       stockOut: [''],
       balance: [{ value: 0, disabled: true }],
@@ -525,7 +658,6 @@ export class CreateStockLedgerComponent {
   private initializeSubCategoryForm() {
     this.subCategoryForm = this.fb.group({
       category: ['', Validators.required],
-      party: ['', Validators.required],
       subCategory: ['', Validators.required],
     });
   }

@@ -57,11 +57,13 @@ export class ListStockLedgerComponent {
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
-    { name: 'Category', prop: 'mainCategory' },
-    { name: 'Party', prop: 'subCategory' },
+    { name: 'Main Category', prop: 'mainCategory' },
+    { name: 'Sub Category', prop: 'subCategory' },
+    { name: 'Party', prop: 'party' },
     { name: 'Stock In', prop: 'stockIn' },
     { name: 'Stock Out', prop: 'stockOut' },
     { name: 'Balance', prop: 'balance' },
+    { name: 'Description', prop: 'description' },
   ];
 
   // Export configuration
@@ -70,13 +72,14 @@ export class ListStockLedgerComponent {
     title: 'Stock Ledger Report',
     showBalance: true,
     columns: [
-      { header: 'Date', key: 'date', width: 25 },
-      { header: 'Category', key: 'mainCategory', width: 30 },
-      { header: 'Party', key: 'subCategory', width: 30 },
-      { header: 'Stock In', key: 'stockIn', width: 25, align: 'right' },
-      { header: 'Stock Out', key: 'stockOut', width: 25, align: 'right' },
-      { header: 'Balance', key: 'balance', width: 25, align: 'right' },
-      { header: 'Description', key: 'description', width: 40 }
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Main Category', key: 'mainCategory', width: 25 },
+      { header: 'Sub Category', key: 'subCategory', width: 25 },
+      { header: 'Party', key: 'party', width: 25 },
+      { header: 'Stock In', key: 'stockIn', width: 20, align: 'right' },
+      { header: 'Stock Out', key: 'stockOut', width: 20, align: 'right' },
+      { header: 'Balance', key: 'balance', width: 20, align: 'right' },
+      { header: 'Description', key: 'description', width: 35 }
     ]
   };
 

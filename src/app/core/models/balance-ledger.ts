@@ -1,5 +1,8 @@
 export interface BalanceLedgerEntry {
   id?: string;
+  party: string;
+  mainCategory: string;
+  subCategory: string;
   itemName: string;
   itemId: string;
   quantity: number;
@@ -19,6 +22,9 @@ export interface BalanceLedgerEntry {
 
 export interface BalanceLedgerEntryReq {
   id: string;
+  party: string;
+  mainCategory: string;
+  subCategory: string;
   itemName: string;
   itemId: string;
   quantity: number;

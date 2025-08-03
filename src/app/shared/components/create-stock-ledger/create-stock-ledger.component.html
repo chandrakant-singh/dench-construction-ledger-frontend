@@ -10,7 +10,7 @@
         <div class="d-flex mb-2">
           <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
             <option value=null>Select Category</option>
-            <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
+            <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
           </select>
           <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Category">
             <i class="bi bi-plus"></i>
@@ -26,34 +26,13 @@
         </div>
       </div>
 
-      <!-- Party -->
-      <div class="col-lg-4 col-md-6 col-sm-12">
-        <label class="form-label">Party</label>
-        <div class="d-flex mb-2">
-          <select class="form-select" formControlName="party" (change)="onPartyChange($event)">
-            <option value=null>Select Party</option>
-            <option *ngFor="let party of parties" [value]="party">{{ party }}</option>
-          </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
-            <i class="bi bi-plus"></i>
-          </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
-            <i class="bi bi-gear"></i>
-          </button>
-        </div>
-        <div class="invalid-feedback"
-          *ngIf="stockLedgerForm.get('party')?.touched && stockLedgerForm.get('party')?.invalid">
-          Party is required
-        </div>
-      </div>
-
       <!-- Sub Category -->
       <div class="col-lg-4 col-md-6 col-sm-12">
         <label class="form-label">Sub Category</label>
         <div class="d-flex mb-2">
-          <select class="form-select" formControlName="subCategory">
+          <select class="form-select" formControlName="subCategory" (change)="onSubCategoryChange($event)">
             <option value=null>Select Sub Category</option>
-            <option *ngFor="let sub of subCategories" [value]="sub">{{ sub }}</option>
+            <option *ngFor="let sub of subCategories" [value]="sub.name">{{ sub.name }}</option>
           </select>
           <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
             <i class="bi bi-plus"></i>
@@ -65,6 +44,27 @@
         <div class="invalid-feedback"
           *ngIf="stockLedgerForm.get('subCategory')?.touched && stockLedgerForm.get('subCategory')?.invalid">
           Sub Category is required
+        </div>
+      </div>
+
+      <!-- Party -->
+      <div class="col-lg-4 col-md-6 col-sm-12">
+        <label class="form-label">Party</label>
+        <div class="d-flex mb-2">
+          <select class="form-select" formControlName="party">
+            <option value=null>Select Party</option>
+            <option *ngFor="let party of parties" [value]="party.name">{{ party.name }}</option>
+          </select>
+          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
+            <i class="bi bi-plus"></i>
+          </button>
+          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="stockLedgerForm.get('party')?.touched && stockLedgerForm.get('party')?.invalid">
+          Party is required
         </div>
       </div>
 
@@ -142,10 +142,10 @@
 <ng-template #createParty>
   <form [formGroup]="partyForm">
     <div class="mb-3">
-      <label class="form-label">Category</label>
+      <label class="form-label">Main Category</label>
       <select class="form-select" formControlName="category">
-        <option value=null>Select Category</option>
-        <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
+        <option value=null>Select Main Category</option>
+        <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
       </select>
     </div>
     <div class="mb-3">
@@ -159,17 +159,10 @@
 <ng-template #createSubCategory>
   <form [formGroup]="subCategoryForm">
     <div class="mb-3">
-      <label class="form-label">Category</label>
+      <label class="form-label">Main Category</label>
       <select class="form-select" formControlName="category">
-        <option value=null>Select Category</option>
-        <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
-      </select>
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Party</label>
-      <select class="form-select" formControlName="party">
-        <option value=null>Select Party</option>
-        <option *ngFor="let party of getPartiesForCategory(subCategoryForm.get('category')?.value)" [value]="party">{{ party }}</option>
+        <option value=null>Select Main Category</option>
+        <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
       </select>
     </div>
     <div class="mb-3">
@@ -188,8 +181,8 @@
         <small>No categories found. Click the + button to add your first category.</small>
       </div>
       <div *ngFor="let category of mainCategories" class="d-flex justify-content-between align-items-center border p-2 mb-2 rounded">
-        <span class="fw-medium">{{ category }}</span>
-        <button class="btn btn-danger btn-sm" (click)="deleteMainCategory(category)" title="Delete Category">
+                  <span class="fw-medium">{{ category.name }}</span>
+                    <button class="btn btn-danger btn-sm" (click)="deleteMainCategory(category.id!)" title="Delete Category">
           <i class="bi bi-trash"></i>
         </button>
       </div>
@@ -217,20 +210,20 @@
       <div *ngIf="mainCategories.length === 0" class="text-center py-3 text-muted">
         <small>No categories found. Please add main categories first.</small>
       </div>
-      <div *ngFor="let category of mainCategories" class="mb-3">
-        <h6 class="text-primary">{{ category }}</h6>
-        <div *ngIf="getPartiesForCategory(category).length === 0" 
-             class="text-muted ps-3">
-          <small>No parties in this category</small>
+              <div *ngFor="let category of mainCategories" class="mb-3">
+          <h6 class="text-primary">{{ category.name }}</h6>
+          <div *ngIf="getSubCategoriesForMainCategory(category.id!).length === 0" 
+               class="text-muted ps-3">
+            <small>No sub categories in this category</small>
+          </div>
+          <div *ngFor="let subCategory of getSubCategoriesForMainCategory(category.id!)" 
+               class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded ms-3">
+            <span>{{ subCategory.name }}</span>
+            <button class="btn btn-danger btn-sm" (click)="deleteSubCategory(category.id!, '', subCategory.id!)" title="Delete Sub Category">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
         </div>
-        <div *ngFor="let party of getPartiesForCategory(category)" 
-             class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded ms-3">
-          <span>{{ party }}</span>
-          <button class="btn btn-danger btn-sm" (click)="deleteParty(category, party)" title="Delete Party">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
-      </div>
     </div>
     <hr>
     <div class="mb-3">
@@ -239,7 +232,7 @@
         <div class="mb-2">
           <select class="form-select" formControlName="category">
             <option value=null>Select Category</option>
-            <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
+            <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
           </select>
         </div>
         <div class="d-flex">
@@ -257,25 +250,22 @@
 <ng-template #manageSubCategory>
   <div class="container-fluid">
     <div class="mb-3">
-      <h6 class="text-muted">Existing Sub Categories by Party</h6>
+      <h6 class="text-muted">Existing Sub Categories by Main Category</h6>
       <div *ngIf="mainCategories.length === 0" class="text-center py-3 text-muted">
         <small>No categories found. Please add main categories first.</small>
       </div>
       <div *ngFor="let category of mainCategories" class="mb-3">
-        <h6 class="text-primary">{{ category }}</h6>
-        <div *ngFor="let party of getPartiesForCategory(category)" class="mb-2 ms-3">
-          <h6 class="text-secondary">{{ party }}</h6>
-          <div *ngIf="getSubCategoriesForParty(category, party).length === 0" 
-               class="text-muted ps-3">
-            <small>No sub-categories for this party</small>
-          </div>
-          <div *ngFor="let subCat of getSubCategoriesForParty(category, party)" 
-               class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded ms-3">
-            <span>{{ subCat }}</span>
-            <button class="btn btn-danger btn-sm" (click)="deleteSubCategory(category, party, subCat)" title="Delete Sub Category">
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
+        <h6 class="text-primary">{{ category.name }}</h6>
+        <div *ngIf="getSubCategoriesForMainCategory(category.id!).length === 0" 
+             class="text-muted ps-3">
+          <small>No sub categories in this main category</small>
+        </div>
+        <div *ngFor="let subCategory of getSubCategoriesForMainCategory(category.id!)" 
+             class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded ms-3">
+          <span>{{ subCategory.name }}</span>
+          <button class="btn btn-danger btn-sm" (click)="deleteSubCategory(category.id!, '', subCategory.id!)" title="Delete Sub Category">
+            <i class="bi bi-trash"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -285,14 +275,8 @@
       <form [formGroup]="subCategoryForm">
         <div class="mb-2">
           <select class="form-select" formControlName="category">
-            <option value=null>Select Category</option>
-            <option *ngFor="let category of mainCategories" [value]="category">{{ category }}</option>
-          </select>
-        </div>
-        <div class="mb-2">
-          <select class="form-select" formControlName="party">
-            <option value=null>Select Party</option>
-            <option *ngFor="let party of getPartiesForCategory(subCategoryForm.get('category')?.value)" [value]="party">{{ party }}</option>
+            <option value=null>Select Main Category</option>
+            <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
           </select>
         </div>
         <div class="d-flex">
