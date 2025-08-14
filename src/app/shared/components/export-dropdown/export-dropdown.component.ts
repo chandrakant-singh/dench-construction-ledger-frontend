@@ -68,6 +68,25 @@ export class ExportDropdownComponent {
 
   isDropdownOpen = false;
 
+  private isInReactNativeWebView(): boolean {
+    return typeof window !== 'undefined' && !!((window as any).ReactNativeWebView || (window as any).__IS_REACT_NATIVE_WEBVIEW__);
+  }
+
+  private normalizeBaseName(): string {
+    const raw = (this.config?.filename || '').toLowerCase();
+    return raw.includes('stock') ? 'stock-ledger' : 'ledger';
+  }
+
+  private postFileToRN(base64: string, mimeType: string, fileName: string, baseName?: string) {
+    try {
+      (window as any).ReactNativeWebView?.postMessage(
+        JSON.stringify({ type: 'FILE_DOWNLOAD', payload: { base64, mimeType, fileName, baseName } })
+      );
+    } catch (e) {
+      console.error('postMessage error', e);
+    }
+  }
+
   get singleOption(): boolean {
     const showExcel = this.config?.showExcel !== false;
     const showPDF = this.config?.showPDF !== false;
@@ -84,7 +103,6 @@ export class ExportDropdownComponent {
   }
 
   constructor() {
-    // Close dropdown when clicking outside
     document.addEventListener('click', () => {
       this.closeDropdown();
     });
@@ -122,7 +140,6 @@ export class ExportDropdownComponent {
 
     const range = XLSX.utils.decode_range(worksheet['!ref']!);
 
-    // Apply styling: Bold headers and borders for all cells
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
@@ -130,14 +147,14 @@ export class ExportDropdownComponent {
         if (!cell) continue;
 
         cell.s = {
-          font: R === 0 ? { bold: true } : {}, // Bold header row
+          font: R === 0 ? { bold: true } : {},
           border: {
             top: { style: "thin", color: { rgb: "000000" } },
             bottom: { style: "thin", color: { rgb: "000000" } },
             left: { style: "thin", color: { rgb: "000000" } },
             right: { style: "thin", color: { rgb: "000000" } },
           },
-        };
+        } as any;
       }
     }
 
@@ -145,6 +162,13 @@ export class ExportDropdownComponent {
       Sheets: { 'data': worksheet },
       SheetNames: ['data']
     };
+
+    if (this.isInReactNativeWebView()) {
+      const base64: string = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+      this.postFileToRN(base64, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fileName, this.normalizeBaseName());
+      this.exportCompleted.emit('excel');
+      return;
+    }
 
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
@@ -158,31 +182,26 @@ export class ExportDropdownComponent {
 
     const doc = new jsPDF();
     
-    // Add title
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text(this.config.title, 14, 22);
     
-    // Add date
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
     
-    // Add balance information if provided
     let startY = 42;
     if (this.config.showBalance && this.config.currentBalance !== undefined) {
       doc.text(`Current Balance: ${this.config.currentBalance || 0}`, 14, 42);
       startY = 52;
     }
 
-    // Prepare table data
     const tableColumns = this.config.columns.map(col => col.header);
     const tableRows = this.data.map(row => 
       this.config.columns.map(col => row[col.key] || '')
     );
 
-    // Calculate column widths
-    const totalWidth = 184; // Available width in portrait mode
+    const totalWidth = 184;
     const columnStyles: any = {};
     
     this.config.columns.forEach((col, index) => {
@@ -193,7 +212,6 @@ export class ExportDropdownComponent {
       };
     });
 
-    // Generate table using autoTable
     autoTable(doc, {
       head: [tableColumns],
       body: tableRows,
@@ -215,16 +233,14 @@ export class ExportDropdownComponent {
       columnStyles: columnStyles,
       margin: { top: startY, left: 14, right: 14 },
       didDrawPage: function (data) {
-        // Add page numbers
-        const pageCount = doc.internal.pages.length - 1;
+        const pageCount = (doc as any).internal.pages.length - 1;
         doc.setFontSize(10);
         doc.text(`Page ${data.pageNumber} of ${pageCount}`, 
-                 doc.internal.pageSize.width - 30, 
-                 doc.internal.pageSize.height - 10);
+                 (doc as any).internal.pageSize.width - 30, 
+                 (doc as any).internal.pageSize.height - 10);
       }
     });
 
-    // Add summary at the end
     const finalY = (doc as any).lastAutoTable.finalY || startY;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -234,8 +250,16 @@ export class ExportDropdownComponent {
     doc.setFont('helvetica', 'normal');
     doc.text(`Total Entries: ${this.data.length}`, 14, finalY + 30);
 
-    // Save the PDF
     const fileName = `${this.config.filename}-${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+
+    if (this.isInReactNativeWebView()) {
+      const dataUri: string = (doc as any).output('datauristring');
+      const base64 = dataUri.split(',')[1] || '';
+      this.postFileToRN(base64, 'application/pdf', fileName, this.normalizeBaseName());
+      this.exportCompleted.emit('pdf');
+      return;
+    }
+
     doc.save(fileName);
 
     this.exportCompleted.emit('pdf');

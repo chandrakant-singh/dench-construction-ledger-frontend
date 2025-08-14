@@ -36,7 +36,7 @@ export class AdminDashboardComponent {
 
   // Export configuration
   exportConfig: ExportConfig = {
-    filename: 'Expenditure-Ledger',
+    filename: 'expenditure-ledger',
     title: 'Expenditure Ledger Report',
     showBalance: true,
     columns: [

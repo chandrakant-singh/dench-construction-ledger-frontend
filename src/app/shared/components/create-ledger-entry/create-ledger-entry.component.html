@@ -1,6 +1,7 @@
 <div class="card">
-  <div class="card-header bg-primary text-white">
-    {{ existingLedger ? 'Update' : 'Create New' }} Ledger Entry
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <span>{{ existingLedger ? 'Update' : 'Create New' }} Ledger Entry</span>
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="onCancel()"></button>
   </div>
   <div class="card-body" *ngIf="appUser; else loadingTemplate">
     <form [formGroup]="ledgerForm" (ngSubmit)="onSubmit()">

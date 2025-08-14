@@ -13,7 +13,12 @@
 
         <div class="mb-3">
           <label>Password</label>
-          <input type="password" class="form-control" formControlName="password" placeholder="Enter your password">
+          <div class="input-group">
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" placeholder="Enter your password">
+            <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()" [attr.aria-pressed]="showPassword" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
           <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-danger">
             Minimum 6 characters.
           </div>

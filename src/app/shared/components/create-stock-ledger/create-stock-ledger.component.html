@@ -1,6 +1,7 @@
 <div class="card">
-  <div class="card-header bg-primary text-white">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
     {{ existingLedger ? 'Update' : 'Create New' }} Stock Ledger Entry
+    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="onCancel()"></button>
   </div>
   <div class="card-body" *ngIf="!isLoading; else loadingTemplate">
     <form [formGroup]="stockLedgerForm" (ngSubmit)="onSubmit()" class="row g-3 needs-validation" novalidate>

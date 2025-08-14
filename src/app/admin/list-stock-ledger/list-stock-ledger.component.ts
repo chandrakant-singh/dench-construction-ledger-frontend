@@ -68,7 +68,7 @@ export class ListStockLedgerComponent {
 
   // Export configuration
   exportConfig: ExportConfig = {
-    filename: 'Stock-Ledger',
+    filename: 'stock-ledger',
     title: 'Stock Ledger Report',
     showBalance: true,
     columns: [

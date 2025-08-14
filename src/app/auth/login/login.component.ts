@@ -15,6 +15,7 @@ import { LoadingButtonComponent } from '../../shared/components/loading-button/l
 export class LoginComponent {
   loginForm: FormGroup;
   isLoading: boolean = false;
+  showPassword: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -50,5 +51,9 @@ export class LoginComponent {
         console.log('finally');
         this.isLoading = false;
       });
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }

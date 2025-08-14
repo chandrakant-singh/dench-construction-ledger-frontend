@@ -63,7 +63,7 @@ export class ListBalanceLedgerComponent {
 
   // Export configuration
   exportConfig: ExportConfig = {
-    filename: 'Balance-Ledger',
+    filename: 'balance-ledger',
     title: 'Balance Ledger Report',
     showBalance: true,
     columns: [
