@@ -16,7 +16,6 @@ export class AuthService {
   private router = inject(Router);
 
   // 🔐 Login
-  // auth.service.ts
   async login(email: string, password: string): Promise<void> {
     const credential: any = await signInWithEmailAndPassword(this.auth, email, password);
     console.log('Credential:', credential);
@@ -26,9 +25,23 @@ export class AuthService {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       const userData = userSnap.data() as AppUser;
+      
+      // Check if user is disabled
+      if (userData.isDisabled === true) {
+        await signOut(this.auth);
+        throw new Error('Your account has been disabled. Please contact administrator.');
+      }
+      
+      // Check if user is inactive (soft deleted)
+      if (userData.isActive === false) {
+        await signOut(this.auth);
+        throw new Error('Your account is no longer active. Please contact administrator.');
+      }
+      
       localStorage.setItem(Constants.USER, JSON.stringify(userData));
       localStorage.setItem(Constants.USER_ID, uid);
       console.log("========== USER DATA ==========", userData);
+      
       if (userData.role === Roles.ADMIN) {
         localStorage.setItem(Constants.ADMIN_TOKEN, credential.user.accessToken);
         this.router.navigate([EndPoints.ADMIN_DASHBOARD]);
@@ -45,14 +58,18 @@ export class AuthService {
     const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
     const uid = userCredential.user.uid;
 
-    // Store additional supervisor details in Firestore
+    // Store supervisor details including password in Firestore
     const supervisorRef = doc(this.firestore, 'users', uid);
     await setDoc(supervisorRef, {
       uid,
       name,
       email,
+      password,
       role: 'supervisor',
-      createdAt: new Date()
+      isActive: true,
+      isDisabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
   }
 
