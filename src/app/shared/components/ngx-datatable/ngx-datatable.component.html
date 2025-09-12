@@ -22,14 +22,14 @@
           [prop]="col.prop"></ngx-datatable-column>
 
         <!-- Optional actions column -->
-        <ngx-datatable-column name="Actions" [sortable]="false" [canAutoResize]="false" [width]="100">
+        <ngx-datatable-column name="Actions" [sortable]="false" [canAutoResize]="false" [width]="140">
           <ng-template let-row="row" ngx-datatable-cell-template>
             <button class="btn btn-xs btn-warning me-2" (click)="onEdit(row)">
               <i class="bi bi-pencil"></i> Edit
             </button>
-            <!-- <button class="btn btn-xs btn-danger" (click)="onDelete(row)">
+            <button class="btn btn-xs btn-danger" (click)="onDelete(row)">
               <i class="bi bi-trash"></i> Delete
-            </button> -->
+            </button>
           </ng-template>
         </ngx-datatable-column>
       </ngx-datatable>

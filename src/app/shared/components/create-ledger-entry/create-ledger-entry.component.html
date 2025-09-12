@@ -19,12 +19,20 @@
 
         <div class="col-lg-4 col-md-6 col-6 fs-smaller" *ngIf="isAdmin">
           <label class="form-label lh-1">Credit</label>
-          <input type="number" class="form-control form-control-sm" formControlName="credit" (input)="calculateBalance()">
+          <input type="number" 
+                 class="form-control form-control-sm" 
+                 formControlName="credit" 
+                 (input)="calculateBalance()"
+                 placeholder="Enter credit amount">
         </div>
 
         <div class="col-lg-4 col-md-6 col-6 fs-smaller">
           <label class="form-label lh-1">Debit</label>
-          <input type="number" class="form-control form-control-sm" formControlName="debit" (input)="calculateBalance()">
+          <input type="number" 
+                 class="form-control form-control-sm" 
+                 formControlName="debit" 
+                 (input)="calculateBalance()"
+                 placeholder="Enter debit amount">
         </div>
 
         <div class="col-lg-4 col-md-6 fs-smaller">
@@ -39,12 +47,19 @@
 
         <div class="col-lg-4 col-md-6 fs-smaller">
           <label class="form-label lh-1">Description</label>
-          <textarea type="text" class="form-control form-control-sm" formControlName="description" rows="2"></textarea>
+          <textarea type="text" 
+                    class="form-control form-control-sm" 
+                    formControlName="description" 
+                    rows="2"
+                    placeholder="Enter description (optional)"></textarea>
         </div>
 
         <div class="col-lg-4 col-md-6 fs-smaller">
           <label class="form-label lh-1">Hint By</label>
-          <input type="text" class="form-control form-control-sm" formControlName="hintBy" rows="2"/>
+          <input type="text" 
+                 class="form-control form-control-sm" 
+                 formControlName="hintBy" 
+                 placeholder="Enter hint by name"/>
         </div>
 
         <!-- <div class="col-lg-4 col-md-6 fs-smaller" *ngIf="isAdmin">
@@ -82,6 +97,19 @@
           </select>
         </div>
       </div>
+
+      <!-- Form-level validation errors -->
+      <!-- <div class="row" *ngIf="hasFormErrors()">
+        <div class="col-12">
+          <div class="alert alert-danger alert-sm" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Please fix the following errors:</strong>
+            <ul class="mb-0 mt-2">
+              <li *ngFor="let error of getFormErrors()">{{ error }}</li>
+            </ul>
+          </div>
+        </div>
+      </div> -->
 
       <div class="mt-4 text-end">
         <!-- <button class="btn btn-primary" type="submit" [disabled]="ledgerForm.invalid">

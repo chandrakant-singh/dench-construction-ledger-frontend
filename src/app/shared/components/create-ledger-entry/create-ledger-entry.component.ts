@@ -8,7 +8,7 @@ import { AppUser } from '../../../core/models/user.model';
 import { LedgerEntry } from '../../../core/models/ledger.model';
 import { LoadingButtonComponent } from '../loading-button/loading-button.component';
 import { DateUtils } from '../../../core/utils/date.utils';
-import { HttpErrorResponse } from '@angular/common/http';
+import { NumberUtils } from '../../../core/utils/number.utils';
 import { creditOrDebitRequired } from '../../../core/utils/form.utils';
 import { forkJoin } from 'rxjs';
 
@@ -86,19 +86,28 @@ export class CreateLedgerEntryComponent {
     }
   }
 
+
   createLedgerEntry() {
     if (this.ledgerForm.valid) {
       this.handleBalanceAmount();
+      
+      // Ensure credit and debit are numeric values (convert empty strings to 0)
+      const formData = this.ledgerForm.getRawValue();
+      const creditValue = NumberUtils.sanitizeToInteger(formData.credit);
+      const debitValue = NumberUtils.sanitizeToInteger(formData.debit);
+      
       this.ledgerService.createLedger(
         {
-          ...this.ledgerForm.getRawValue(),
+          ...formData,
+          credit: creditValue,
+          debit: debitValue,
           status: 'pending',
           createdBy: this.appUser.uid,
           updatedBy: this.appUser.uid,
-          depositedBy: this.ledgerForm.get('credit')?.value && (this.ledgerForm.get('depositedBy')?.value || this.appUser.uid),
-          depositedByName: this.ledgerForm.get('credit')?.value && (this.ledgerForm.get('depositedByName')?.value || this.appUser.name),
-          debitedBy: this.ledgerForm.get('debit')?.value && (this.ledgerForm.get('debitedBy')?.value || this.appUser.uid),
-          debitedByName: this.ledgerForm.get('debit')?.value && (this.ledgerForm.get('debitedByName')?.value || this.appUser.name)
+          depositedBy: creditValue > 0 && (this.ledgerForm.get('depositedBy')?.value || this.appUser.uid),
+          depositedByName: creditValue > 0 && (this.ledgerForm.get('depositedByName')?.value || this.appUser.name),
+          debitedBy: debitValue > 0 && (this.ledgerForm.get('debitedBy')?.value || this.appUser.uid),
+          debitedByName: debitValue > 0 && (this.ledgerForm.get('debitedByName')?.value || this.appUser.name)
         })
         .subscribe(
           {
@@ -121,7 +130,18 @@ export class CreateLedgerEntryComponent {
 
   updateLedgerEntry() {
     if (this.ledgerForm.valid && this.existingLedger) {
-      this.ledgerService.updateLedger(this.ledgerId, this.ledgerForm.getRawValue())
+      // Ensure credit and debit are numeric values (convert empty strings to 0)
+      const formData = this.ledgerForm.getRawValue();
+      const creditValue = NumberUtils.sanitizeToInteger(formData.credit);
+      const debitValue = NumberUtils.sanitizeToInteger(formData.debit);
+      
+      const updateData = {
+        ...formData,
+        credit: creditValue,
+        debit: debitValue
+      };
+      
+      this.ledgerService.updateLedger(this.ledgerId, updateData)
         .subscribe(
           {
             next: () => {
@@ -159,9 +179,14 @@ export class CreateLedgerEntryComponent {
       approvedByName: [''],
       depositedByName: [''],
       debitedByName: ['']
-      ,
-    }, { validators: creditOrDebitRequired() });
+    }, { 
+      validators: 
+      [
+        creditOrDebitRequired(),
+      ]
+    });
   }
+
 
   public onUserChange(event: Event, field: 'depositedBy' | 'debitedBy'): void {
     const selectedUid = (event.target as HTMLSelectElement).value;
@@ -252,17 +277,17 @@ export class CreateLedgerEntryComponent {
   */
 
   calculateBalance() {
-    const stockIn = +this.ledgerForm.get('credit')?.value || 0;
-    const stockOut = +this.ledgerForm.get('debit')?.value || 0;
-    const balance = (this.lastLedgerEntry?.balance || 0) + stockIn - stockOut;
+    const credit = NumberUtils.sanitizeToInteger(this.ledgerForm.get('credit')?.value);
+    const debit = NumberUtils.sanitizeToInteger(this.ledgerForm.get('debit')?.value);
+    const balance = (this.lastLedgerEntry?.balance || 0) + credit - debit;
     this.ledgerForm.patchValue({ balance });
   }
 
   private handleBalanceAmount() {
     // balance = previousBalance + credit - debit
     const formValue = this.ledgerForm.getRawValue();
-    const credit = Number(formValue.credit || 0);
-    const debit = Number(formValue.debit || 0);
+    const credit = NumberUtils.sanitizeToInteger(formValue.credit);
+    const debit = NumberUtils.sanitizeToInteger(formValue.debit);
     const runningBalance = this.lastLedgerEntry?.balance || 0;
 
     const newBalance = runningBalance + credit - debit;

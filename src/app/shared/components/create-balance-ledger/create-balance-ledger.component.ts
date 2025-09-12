@@ -7,7 +7,8 @@ import { CommonModule } from '@angular/common';
 import { AppUser } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { DateUtils } from '../../../core/utils/date.utils';
-import { balanceLedgerFormValidation, creditOrDebitRequired } from '../../../core/utils/form.utils';
+import { NumberUtils } from '../../../core/utils/number.utils';
+import { balanceLedgerFormValidation } from '../../../core/utils/form.utils';
 import { LoadingButtonComponent } from '../loading-button/loading-button.component';
 import { DialogComponent } from "../dialog/dialog.component";
 import { BalanceLedgerItemService } from '../../../core/services/balance-ledger-item.service';
@@ -129,9 +130,21 @@ export class CreateBalanceLedgerComponent {
   createLedgerEntry() {
     if (this.balanceLedgerForm.valid) {
       this.handleBalanceAmount();
+      
+      // Sanitize form values to ensure numeric fields are integers
+      const formValue = this.balanceLedgerForm.getRawValue();
+      const sanitizedFormValue = {
+        ...formValue,
+        quantity: NumberUtils.sanitizeToInteger(formValue.quantity),
+        rate: NumberUtils.sanitizeToInteger(formValue.rate),
+        amount: NumberUtils.sanitizeToInteger(formValue.amount),
+        credit: NumberUtils.sanitizeToInteger(formValue.credit),
+        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+      };
+      
       this.balanceLedgerService.createLedger(
         {
-          ...this.balanceLedgerForm.getRawValue(),
+          ...sanitizedFormValue,
           createdBy: this.appUser.uid,
           updatedBy: this.appUser.uid,
         })
@@ -156,7 +169,18 @@ export class CreateBalanceLedgerComponent {
 
   updateLedgerEntry() {
     if (this.balanceLedgerForm.valid && this.existingLedger) {
-      this.balanceLedgerService.updateLedger(this.ledgerId, this.balanceLedgerForm.getRawValue())
+      // Sanitize form values to ensure numeric fields are integers
+      const formValue = this.balanceLedgerForm.getRawValue();
+      const sanitizedFormValue = {
+        ...formValue,
+        quantity: NumberUtils.sanitizeToInteger(formValue.quantity),
+        rate: NumberUtils.sanitizeToInteger(formValue.rate),
+        amount: NumberUtils.sanitizeToInteger(formValue.amount),
+        credit: NumberUtils.sanitizeToInteger(formValue.credit),
+        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+      };
+      
+      this.balanceLedgerService.updateLedger(this.ledgerId, sanitizedFormValue)
         .subscribe(
           {
             next: () => {
@@ -543,16 +567,16 @@ export class CreateBalanceLedgerComponent {
   }
 
   calculateBalance() {
-    const amount = +this.balanceLedgerForm.get('amount')?.value || 0;
-    const debit = +this.balanceLedgerForm.get('credit')?.value || 0;
-    const balance = (this.lastLedger?.balance || 0) + amount - debit;
+    const amount = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('amount')?.value);
+    const credit = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('credit')?.value);
+    const balance = (this.lastLedger?.balance || 0) + amount - credit;
     this.balanceLedgerForm.patchValue({ balance });
   }
 
   calculateAmount() {
-    const quantity = +this.balanceLedgerForm.get('quantity')?.value || 0;
-    const rate = +this.balanceLedgerForm.get('rate')?.value || 0;
-    const amount = (quantity && rate) ? quantity * rate : (quantity ?? 0) * (rate ?? 0);
+    const quantity = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('quantity')?.value);
+    const rate = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('rate')?.value);
+    const amount = quantity * rate;
     this.balanceLedgerForm.patchValue({ amount });
     if(amount > 0) {
       this.calculateBalance();
@@ -625,13 +649,13 @@ export class CreateBalanceLedgerComponent {
   }
 
   private handleBalanceAmount() {
-    // balance = previousBalance + credit - debit
+    // balance = previousBalance + amount - credit
     const formValue = this.balanceLedgerForm.getRawValue();
-    const credit = Number(formValue.amount || 0);
-    const debit = Number(formValue.credit || 0);
+    const amount = NumberUtils.sanitizeToInteger(formValue.amount);
+    const credit = NumberUtils.sanitizeToInteger(formValue.credit);
     const runningBalance = this.lastLedger?.balance || 0;
 
-    const newBalance = runningBalance + credit - debit;
+    const newBalance = runningBalance + amount - credit;
     this.balanceLedgerForm.patchValue({ balance: newBalance });
   }
 

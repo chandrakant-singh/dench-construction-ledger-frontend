@@ -14,6 +14,8 @@ import { GenericFilterComponent } from '../../shared/components/generic-filter/g
 import { Offcanvas } from 'bootstrap';
 import { StockLedgerCategoryService } from '../../core/services/stock-ledger-category.service';
 import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.model';
+import { ToastService } from '../../core/services/toaster.service';
+import { NumberUtils } from '../../core/utils/number.utils';
 
 @Component({
   selector: 'app-list-stock-ledger',
@@ -54,6 +56,7 @@ export class ListStockLedgerComponent {
   showLedgerForm: boolean = false;
 
   isLoading: boolean = false;
+  deleteProgress: number = 0;
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
@@ -88,7 +91,8 @@ export class ListStockLedgerComponent {
     private readonly route: ActivatedRoute,
     private readonly stockLedgerService: StockLedgerService,
     private cdr: ChangeDetectorRef,
-    private readonly stockLedgerCategoryService: StockLedgerCategoryService
+    private readonly stockLedgerCategoryService: StockLedgerCategoryService,
+    private readonly toastService: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -137,7 +141,46 @@ export class ListStockLedgerComponent {
   }
 
   onDeleteLedger(row: any) {
-    console.log('Delete', row);
+    const confirmDelete = confirm(
+      `Are you sure you want to delete this stock ledger entry?\n\n` +
+      `This will:\n` +
+      `• Delete the stock ledger entry permanently\n` +
+      `• Recalculate balances for all subsequent entries\n` +
+      `• This action cannot be undone`
+    );
+    
+    if (confirmDelete) {
+      this.isLoading = true;
+      console.log('Deleting stock ledger entry:', row);
+      
+      // Progress callback for large operations
+      const progressCallback = (progress: number) => {
+        this.deleteProgress = progress;
+        if (progress > 0) {
+          this.toastService.show(`Processing... ${progress.toFixed(1)}% complete`, 'info');
+        }
+      };
+
+      this.stockLedgerService.deleteLedgerWithRecalculation(row.id, progressCallback)
+        .subscribe({
+          next: () => {
+            console.log('Stock ledger entry deleted successfully with balance recalculation');
+            this.toastService.show('Stock ledger entry deleted and balances recalculated successfully', 'success');
+            // Refresh the data to show updated balances
+            this.initializeComponent();
+          },
+          error: (error) => {
+            console.error('Error deleting stock ledger entry:', error);
+            this.toastService.show('Error deleting stock ledger entry. Please try again.', 'danger');
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          },
+          complete: () => {
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          }
+        });
+    }
   }
 
   createEntry() {
@@ -212,10 +255,11 @@ export class ListStockLedgerComponent {
     this.stockLedgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.ledgerData = ledgerEntries;
-          this.todayEntries = this.getTodayEntries(ledgerEntries);
-          this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
-          console.log("Ledger : ", ledgerEntries);
+          // Sanitize all stock ledger entries to ensure stockIn, stockOut, and balance are integers
+          this.ledgerData = ledgerEntries.map((entry: any) => this.sanitizeStockLedgerEntry(entry));
+          this.todayEntries = this.getTodayEntries(this.ledgerData);
+          this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
+          console.log("Ledger : ", this.ledgerData);
           setTimeout(() => this.cdr.detectChanges());
           this.isLoading = false;
         },
@@ -268,7 +312,8 @@ export class ListStockLedgerComponent {
     this.stockLedgerService.getLatestEntry().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.lastStockLedger = ledgerEntries;
+          // Sanitize the latest stock ledger entry to ensure balance is an integer
+          this.lastStockLedger = ledgerEntries ? this.sanitizeStockLedgerEntry(ledgerEntries) : null;
           this.isLoading = false;
         },
         error: (error) => {
@@ -375,13 +420,17 @@ export class ListStockLedgerComponent {
 
   get todaysBalance(): number | null {
     if (!this.todayEntries || this.todayEntries.length === 0) return null;
-    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockIn, 0);
-    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => acc + curr.stockOut, 0);
+    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.stockIn);
+    }, 0);
+    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: StockLedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.stockOut);
+    }, 0);
     return totalCreditSum - totalDebitSum;
   }
 
   get currentBalance(): number | null {
-    return this.isEditMode ? this.todaysBalance : this.lastStockLedger?.balance || null;
+    return this.isEditMode ? this.todaysBalance : (this.lastStockLedger ? NumberUtils.sanitizeToInteger(this.lastStockLedger.balance) : null);
   }
 
   get currentExportConfig(): ExportConfig {
@@ -425,5 +474,19 @@ export class ListStockLedgerComponent {
     const toDateStr = dateFilter.toDate;
 
     return entryDateStr >= fromDateStr && entryDateStr <= toDateStr;
+  }
+
+  /**
+   * Sanitize stock ledger entry data to ensure stockIn, stockOut, and balance are integers
+   * @param entry - The stock ledger entry to sanitize
+   * @returns Sanitized stock ledger entry
+   */
+  private sanitizeStockLedgerEntry(entry: any): any {
+    return {
+      ...entry,
+      stockIn: NumberUtils.sanitizeToInteger(entry.stockIn),
+      stockOut: NumberUtils.sanitizeToInteger(entry.stockOut),
+      balance: NumberUtils.sanitizeToInteger(entry.balance)
+    };
   }
 }

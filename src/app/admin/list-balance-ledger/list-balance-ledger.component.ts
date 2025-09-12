@@ -13,6 +13,8 @@ import { CreateBalanceLedgerComponent } from '../../shared/components/create-bal
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
 import { BalanceLedgerItemService } from '../../core/services/balance-ledger-item.service';
 import { Offcanvas } from 'bootstrap';
+import { ToastService } from '../../core/services/toaster.service';
+import { NumberUtils } from '../../core/utils/number.utils';
 
 @Component({
   selector: 'app-list-balance-ledger',
@@ -46,6 +48,7 @@ export class ListBalanceLedgerComponent {
   subCategories: string[] = [];
 
   isLoading: boolean = false;
+  deleteProgress: number = 0;
 
   ledgerColumns = [
     { name: 'Date', prop: 'date' },
@@ -84,7 +87,8 @@ export class ListBalanceLedgerComponent {
     private readonly route: ActivatedRoute,
     private readonly balanceLedgerService: BalanceLedgerService,
     private readonly balanceLedgerItemService: BalanceLedgerItemService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private readonly toastService: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -132,7 +136,46 @@ export class ListBalanceLedgerComponent {
   }
 
   onDeleteLedger(row: any) {
-    console.log('Delete', row);
+    const confirmDelete = confirm(
+      `Are you sure you want to delete this balance ledger entry?\n\n` +
+      `This will:\n` +
+      `• Delete the balance ledger entry permanently\n` +
+      `• Recalculate balances for all subsequent entries\n` +
+      `• This action cannot be undone`
+    );
+    
+    if (confirmDelete) {
+      this.isLoading = true;
+      console.log('Deleting balance ledger entry:', row);
+      
+      // Progress callback for large operations
+      const progressCallback = (progress: number) => {
+        this.deleteProgress = progress;
+        if (progress > 0) {
+          this.toastService.show(`Processing... ${progress.toFixed(1)}% complete`, 'info');
+        }
+      };
+
+      this.balanceLedgerService.deleteLedgerWithRecalculation(row.id, progressCallback)
+        .subscribe({
+          next: () => {
+            console.log('Balance ledger entry deleted successfully with balance recalculation');
+            this.toastService.show('Balance ledger entry deleted and balances recalculated successfully', 'success');
+            // Refresh the data to show updated balances
+            this.initializeComponent();
+          },
+          error: (error) => {
+            console.error('Error deleting balance ledger entry:', error);
+            this.toastService.show('Error deleting balance ledger entry. Please try again.', 'danger');
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          },
+          complete: () => {
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          }
+        });
+    }
   }
 
   createEntry() {
@@ -298,10 +341,11 @@ export class ListBalanceLedgerComponent {
     this.balanceLedgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.ledgerData = ledgerEntries;
-          this.todayEntries = this.getTodayEntries(ledgerEntries);
-          this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
-          console.log("Ledger : ", ledgerEntries);
+          // Sanitize all balance ledger entries to ensure amount, credit, and balance are integers
+          this.ledgerData = ledgerEntries.map((entry: any) => this.sanitizeBalanceLedgerEntry(entry));
+          this.todayEntries = this.getTodayEntries(this.ledgerData);
+          this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
+          console.log("Ledger : ", this.ledgerData);
           this.populateFilterOptions(); // Populate filter options after data is loaded
           setTimeout(() => this.cdr.detectChanges());
           this.isLoading = false;
@@ -355,7 +399,8 @@ export class ListBalanceLedgerComponent {
     this.balanceLedgerService.getLatestEntry().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.lastLedger = ledgerEntries;
+          // Sanitize the latest balance ledger entry to ensure balance is an integer
+          this.lastLedger = ledgerEntries ? this.sanitizeBalanceLedgerEntry(ledgerEntries) : null;
           this.isLoading = false;
         },
         error: (error) => {
@@ -379,13 +424,17 @@ export class ListBalanceLedgerComponent {
 
   get todaysBalance(): number | null {
     if (!this.todayEntries || this.todayEntries.length === 0) return null;
-    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => acc + curr.amount, 0);
-    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => acc + curr.credit, 0);
+    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.amount);
+    }, 0);
+    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.credit);
+    }, 0);
     return totalCreditSum - totalDebitSum;
   }
 
   get currentBalance(): number | null {
-    return this.isEditMode ? this.todaysBalance : this.lastLedger?.balance || null;
+    return this.isEditMode ? this.todaysBalance : (this.lastLedger ? NumberUtils.sanitizeToInteger(this.lastLedger.balance) : null);
   }
 
   get currentExportConfig(): ExportConfig {
@@ -429,5 +478,19 @@ export class ListBalanceLedgerComponent {
     const toDateStr = dateFilter.toDate;
 
     return entryDateStr >= fromDateStr && entryDateStr <= toDateStr;
+  }
+
+  /**
+   * Sanitize balance ledger entry data to ensure amount, credit, and balance are integers
+   * @param entry - The balance ledger entry to sanitize
+   * @returns Sanitized balance ledger entry
+   */
+  private sanitizeBalanceLedgerEntry(entry: any): any {
+    return {
+      ...entry,
+      amount: NumberUtils.sanitizeToInteger(entry.amount),
+      credit: NumberUtils.sanitizeToInteger(entry.credit),
+      balance: NumberUtils.sanitizeToInteger(entry.balance)
+    };
   }
 }

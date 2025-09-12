@@ -10,10 +10,12 @@ import { EndPoints } from '../../shared/constants/endpoints';
 import { LedgerService } from '../../core/services/ledger.service';
 import { LedgerEntry, LedgerEntryReq } from '../../core/models/ledger.model';
 import { StorageUtils } from '../../core/utils/storage.utils';
+import { NumberUtils } from '../../core/utils/number.utils';
 import { CreateLedgerEntryComponent } from '../../shared/components/create-ledger-entry/create-ledger-entry.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
 import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 import { AppUser } from '../../core/models/user.model';
+import { ToastService } from '../../core/services/toaster.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -69,13 +71,15 @@ export class AdminDashboardComponent {
 
   columns: any = [];
   isLoading: boolean = false;
+  deleteProgress: number = 0;
 
   constructor(
     private readonly userService: UserService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly ledgerService: LedgerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private readonly toastService: ToastService
   ) {
   }
 
@@ -112,7 +116,6 @@ export class AdminDashboardComponent {
         name: 'Actions',
         cellTemplate: this.actionTpl,
         sortable: false,
-        width: 80
       }
     ];
 
@@ -164,10 +167,45 @@ export class AdminDashboardComponent {
   }
 
   onDelete(row: any) {
-    const confirmDelete = confirm('Are you sure you want to delete this entry?');
+    const confirmDelete = confirm(
+      `Are you sure you want to delete this entry?\n\n` +
+      `This will:\n` +
+      `• Delete the ledger entry permanently\n` +
+      `• Recalculate balances for all subsequent entries\n` +
+      `• This action cannot be undone`
+    );
+    
     if (confirmDelete) {
-      console.log('Deleting row:', row);
-      // Remove from Firebase or local array
+      this.isLoading = true;
+      console.log('Deleting ledger entry:', row);
+      
+      // Progress callback for large operations
+      const progressCallback = (progress: number) => {
+        this.deleteProgress = progress;
+        if (progress > 0) {
+          this.toastService.show(`Processing... ${progress.toFixed(1)}% complete`, 'info');
+        }
+      };
+
+      this.ledgerService.deleteLedgerWithRecalculation(row.id, progressCallback)
+        .subscribe({
+          next: () => {
+            console.log('Ledger entry deleted successfully with balance recalculation');
+            this.toastService.show('Entry deleted and balances recalculated successfully', 'success');
+            // Refresh the data to show updated balances
+            this.initializeComponent();
+          },
+          error: (error) => {
+            console.error('Error deleting ledger entry:', error);
+            this.toastService.show('Error deleting entry. Please try again.', 'danger');
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          },
+          complete: () => {
+            this.isLoading = false;
+            this.deleteProgress = 0;
+          }
+        });
     }
   }
 
@@ -216,11 +254,12 @@ export class AdminDashboardComponent {
     this.ledgerService.getLedgerEntries().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.ledgerData = ledgerEntries;
-          this.todayEntries = this.getTodayEntries(ledgerEntries);
-          this.filteredRows = this.isEditMode ? this.todayEntries : ledgerEntries;
+          // Sanitize all ledger entries to ensure credit, debit, and balance are integers
+          this.ledgerData = ledgerEntries.map((entry: any) => this.sanitizeLedgerEntry(entry));
+          this.todayEntries = this.getTodayEntries(this.ledgerData);
+          this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
           // this.filterRows();
-          console.log("Ledger : ", ledgerEntries);
+          console.log("Ledger : ", this.ledgerData);
           setTimeout(() => this.cdr.detectChanges());
           this.isLoading = false;
         },
@@ -273,7 +312,8 @@ export class AdminDashboardComponent {
     this.ledgerService.getLatestEntry().subscribe(
       {
         next: (ledgerEntries: any) => {
-          this.lastLedger = ledgerEntries;
+          // Sanitize the latest ledger entry to ensure balance is an integer
+          this.lastLedger = ledgerEntries ? this.sanitizeLedgerEntry(ledgerEntries) : null;
           this.isLoading = false;
         },
         error: (error) => {
@@ -324,10 +364,11 @@ export class AdminDashboardComponent {
 
         // Filter by credit (if specified)
         if (credit !== null && credit !== undefined && credit !== '') {
-          // Convert to number if stored as string
-          const entryCredit = Number(entry.credit);
-          if (isNaN(entryCredit) || entryCredit !== Number(credit)) {
-            if (entryCredit < credit) {
+          // Use sanitized integer values for comparison
+          const entryCredit = NumberUtils.sanitizeToInteger(entry.credit);
+          const filterCredit = NumberUtils.sanitizeToInteger(credit);
+          if (entryCredit !== filterCredit) {
+            if (entryCredit < filterCredit) {
               isMatch = false;
             }
           }
@@ -335,10 +376,11 @@ export class AdminDashboardComponent {
 
         // Filter by debit (if specified)
         if (debit !== null && debit !== undefined && debit !== '') {
-          // Convert to number if stored as string
-          const entryDebit = Number(entry.debit);
-          if (isNaN(entryDebit) || entryDebit !== Number(debit)) {
-            if (entryDebit < debit) {
+          // Use sanitized integer values for comparison
+          const entryDebit = NumberUtils.sanitizeToInteger(entry.debit);
+          const filterDebit = NumberUtils.sanitizeToInteger(debit);
+          if (entryDebit !== filterDebit) {
+            if (entryDebit < filterDebit) {
               isMatch = false;
             }
           }
@@ -410,13 +452,21 @@ export class AdminDashboardComponent {
 
   get todaysBalance(): number | null {
     if (!this.todayEntries || this.todayEntries.length === 0) return null;
-    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.credit, 0);
-    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: LedgerEntry) => acc + curr.debit, 0);
+    const totalCreditSum = this.todayEntries.reduce((acc: number, curr: LedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.credit);
+    }, 0);
+    const totalDebitSum = this.todayEntries.reduce((acc: number, curr: LedgerEntry) => {
+      return acc + NumberUtils.sanitizeToInteger(curr.debit);
+    }, 0);
     return totalCreditSum - totalDebitSum;
   }
 
   get currentBalance(): number | null {
-    return this.isEditMode ? this.todaysBalance : this.lastLedger?.balance || null;
+    if (this.isEditMode) {
+      return this.todaysBalance;
+    } else {
+      return this.lastLedger ? NumberUtils.sanitizeToInteger(this.lastLedger.balance) : null;
+    }
   }
 
   get currentExportConfig(): ExportConfig {
@@ -460,5 +510,20 @@ export class AdminDashboardComponent {
     const toDateStr = dateFilter.toDate;
 
     return entryDateStr >= fromDateStr && entryDateStr <= toDateStr;
+  }
+
+
+  /**
+   * Sanitize ledger entry data to ensure credit and debit are integers
+   * @param entry - The ledger entry to sanitize
+   * @returns Sanitized ledger entry
+   */
+  private sanitizeLedgerEntry(entry: any): any {
+    return {
+      ...entry,
+      credit: NumberUtils.sanitizeToInteger(entry.credit),
+      debit: NumberUtils.sanitizeToInteger(entry.debit),
+      balance: NumberUtils.sanitizeToInteger(entry.balance)
+    };
   }
 }

@@ -9,6 +9,7 @@ import { StockLedgerService } from '../../../core/services/stock-ledger.service'
 import { UserService } from '../../../core/services/user.service';
 import { StockLedgerEntry } from '../../../core/models/stock-ledger';
 import { DateUtils } from '../../../core/utils/date.utils';
+import { NumberUtils } from '../../../core/utils/number.utils';
 import { creditOrDebitRequired } from '../../../core/utils/form.utils';
 import { LoadingButtonComponent } from '../loading-button/loading-button.component';
 import { DialogComponent } from "../dialog/dialog.component";
@@ -88,9 +89,19 @@ export class CreateStockLedgerComponent {
   createLedgerEntry() {
     if (this.stockLedgerForm.valid) {
       this.handleBalanceAmount();
+      
+      // Sanitize form values to ensure numeric fields are integers
+      const formValue = this.stockLedgerForm.getRawValue();
+      const sanitizedFormValue = {
+        ...formValue,
+        stockIn: NumberUtils.sanitizeToInteger(formValue.stockIn),
+        stockOut: NumberUtils.sanitizeToInteger(formValue.stockOut),
+        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+      };
+      
       this.stockLedgerService.createLedger(
         {
-          ...this.stockLedgerForm.getRawValue(),
+          ...sanitizedFormValue,
           createdBy: this.appUser.uid,
           updatedBy: this.appUser.uid,
         })
@@ -115,7 +126,16 @@ export class CreateStockLedgerComponent {
 
   updateLedgerEntry() {
     if (this.stockLedgerForm.valid && this.existingLedger) {
-      this.stockLedgerService.updateLedger(this.ledgerId, this.stockLedgerForm.getRawValue())
+      // Sanitize form values to ensure numeric fields are integers
+      const formValue = this.stockLedgerForm.getRawValue();
+      const sanitizedFormValue = {
+        ...formValue,
+        stockIn: NumberUtils.sanitizeToInteger(formValue.stockIn),
+        stockOut: NumberUtils.sanitizeToInteger(formValue.stockOut),
+        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+      };
+      
+      this.stockLedgerService.updateLedger(this.ledgerId, sanitizedFormValue)
         .subscribe(
           {
             next: () => {
@@ -600,8 +620,8 @@ export class CreateStockLedgerComponent {
   }
 
   calculateBalance() {
-    const stockIn = +this.stockLedgerForm.get('stockIn')?.value || 0;
-    const stockOut = +this.stockLedgerForm.get('stockOut')?.value || 0;
+    const stockIn = NumberUtils.sanitizeToInteger(this.stockLedgerForm.get('stockIn')?.value);
+    const stockOut = NumberUtils.sanitizeToInteger(this.stockLedgerForm.get('stockOut')?.value);
     const balance = (this.lastStockLedger?.balance || 0) + stockIn - stockOut;
     this.stockLedgerForm.patchValue({ balance });
   }
@@ -663,13 +683,13 @@ export class CreateStockLedgerComponent {
   }
 
   private handleBalanceAmount() {
-    // balance = previousBalance + credit - debit
+    // balance = previousBalance + stockIn - stockOut
     const formValue = this.stockLedgerForm.getRawValue();
-    const credit = Number(formValue.stockIn || 0);
-    const debit = Number(formValue.stockOut || 0);
+    const stockIn = NumberUtils.sanitizeToInteger(formValue.stockIn);
+    const stockOut = NumberUtils.sanitizeToInteger(formValue.stockOut);
     const runningBalance = this.lastStockLedger?.balance || 0;
 
-    const newBalance = runningBalance + credit - debit;
+    const newBalance = runningBalance + stockIn - stockOut;
     this.stockLedgerForm.patchValue({ balance: newBalance });
   }
 

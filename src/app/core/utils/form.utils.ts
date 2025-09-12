@@ -13,6 +13,26 @@ export function creditOrDebitRequired(creditParameterName = 'credit', debitParam
   };
 }
 
+export function creditOrDebitEnableDisable(creditParameterName = 'credit', debitParameterName = 'debit'): ValidatorFn {
+  return (group: AbstractControl): ValidationErrors | null => {
+    const credit = group.get(creditParameterName)?.value;
+    const debit = group.get(debitParameterName)?.value;
+
+    if (credit) {
+      group.get(debitParameterName)?.enable();
+    } else {
+      group.get(debitParameterName)?.disable();
+    }
+    if (debit) {
+      group.get(creditParameterName)?.enable();
+    } else {
+      group.get(creditParameterName)?.disable();
+    }
+
+    return null;
+  };
+}
+
 export function balanceLedgerFormValidation(
   creditField = 'credit',
   quantityField = 'quantity',
