@@ -19,15 +19,44 @@
         [limit]="10"
         (activate)="onRowClick($event)">
         <ngx-datatable-column *ngFor="let col of columns" [name]="col.name"
-          [prop]="col.prop"></ngx-datatable-column>
+          [prop]="col.prop">
+        </ngx-datatable-column>
+
+        <!-- Optional status column -->
+        <ngx-datatable-column name="Status/Approved by" [sortable]="false" [canAutoResize]="false" [width]="140">
+          <ng-template let-row="row" ngx-datatable-cell-template>
+            <!-- Status Column Template -->
+            <ng-container *ngIf="row.status === 'pending'; else approved">
+              <span *ngIf="canApprove" class="badge" role="button" (click)="onStatusChange(row)" [ngClass]="{
+                'bg-success': row.status === 'approved',
+                'bg-warning text-dark': row.status === 'pending',
+                'bg-danger': row.status === 'rejected'
+              }">
+                {{ row.status | titlecase }}
+              </span>
+              <span *ngIf="!canApprove" class="badge bg-warning text-dark">
+                {{ row.status | titlecase }}
+              </span>
+            </ng-container>
+            <ng-template #approved>
+              <span [ngClass]="{
+                'text-success': row.status === 'approved',
+                'text-warning': row.status === 'pending',
+                'text-danger': row.status === 'rejected'
+              }">
+                {{ row.approvedByName }}
+              </span>
+            </ng-template>
+          </ng-template>
+        </ngx-datatable-column>
 
         <!-- Optional actions column -->
         <ngx-datatable-column name="Actions" [sortable]="false" [canAutoResize]="false" [width]="140">
           <ng-template let-row="row" ngx-datatable-cell-template>
-            <button class="btn btn-xs btn-warning me-2" (click)="onEdit(row)">
+            <button *ngIf="canEdit" class="btn btn-xs btn-warning me-2" (click)="onEdit(row)" [disabled]="row.status === 'approved'">
               <i class="bi bi-pencil"></i> Edit
             </button>
-            <button class="btn btn-xs btn-danger" (click)="onDelete(row)">
+            <button *ngIf="canDelete" class="btn btn-xs btn-danger" (click)="onDelete(row)">
               <i class="bi bi-trash"></i> Delete
             </button>
           </ng-template>

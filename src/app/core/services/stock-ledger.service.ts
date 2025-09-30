@@ -40,7 +40,8 @@ export class StockLedgerService {
       ...entry,
       createdAt: timestamp,
       updatedAt: timestamp,
-      createdByName: StorageUtils.getUserName()
+      createdByName: StorageUtils.getUserName(),
+      status: entry.status || 'pending' // Default to pending if not specified
     };
     return from(addDoc(this.collectionRef, data)).pipe(
       map(docRef => docRef.id)
@@ -52,6 +53,17 @@ export class StockLedgerService {
     const docRef = doc(this.firestore, `stock-ledger/${id}`);
     return from(updateDoc(docRef, {
       ...updates,
+      updatedAt: new Date()
+    }));
+  }
+
+  // 📝 Update stock ledger status (approve/reject)
+  public updateStockLedgerStatus(id: string, status: string): Observable<void> {
+    const docRef = doc(this.firestore, `stock-ledger/${id}`);
+    return from(updateDoc(docRef, {
+      status: status,
+      approvedBy: StorageUtils.getUid(),
+      approvedByName: StorageUtils.getUserName(),
       updatedAt: new Date()
     }));
   }
@@ -214,10 +226,13 @@ export class StockLedgerService {
 
     return from(getDocs(q)).pipe(
       map(snapshot =>
-        snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as StockLedgerEntry)
-        }))
+        snapshot.docs.map(doc => {
+          const data = doc.data() as StockLedgerEntry;
+          return {
+            ...data,
+            id: doc.id
+          };
+        })
       )
     );
   }
@@ -237,7 +252,8 @@ export class StockLedgerService {
       map(snapshot => {
         if (snapshot.empty) return null;
         const doc = snapshot.docs[0];
-        return { id: doc.id, ...(doc.data() as StockLedgerEntry) };
+        const data = doc.data() as StockLedgerEntry;
+        return { ...data, id: doc.id };
       })
     );
   }

@@ -87,8 +87,12 @@
                     [columns]="ledgerColumns"
                     header=""
                     [headerHelperText]="''"
+                    [canEdit]="canEditEntries"
+                    [canDelete]="canDeleteEntries"
+                    [canApprove]="canApproveEntries"
                     (rowEdit)="onEditLedger($event)"
-                    (rowDelete)="onDeleteLedger($event)">
+                    (rowDelete)="onDeleteLedger($event)"
+                    (statusChange)="onStatusChange($event)">
                   </app-ngx-datatable>
                 </div>
               </div>
@@ -102,8 +106,12 @@
               [columns]="ledgerColumns"
               header=""
               [headerHelperText]="''"
+              [canEdit]="canEditEntries"
+              [canDelete]="canDeleteEntries"
+              [canApprove]="canApproveEntries"
               (rowEdit)="onEditLedger($event)"
-              (rowDelete)="onDeleteLedger($event)">
+              (rowDelete)="onDeleteLedger($event)"
+              (statusChange)="onStatusChange($event)">
             </app-ngx-datatable>
           </ng-template>
         </div>

@@ -22,6 +22,7 @@ import { PartyService } from '../../../core/services/party.service';
 import { MainCategoryService } from '../../../core/services/main-category.service';
 import { SubCategoryService } from '../../../core/services/sub-category.service';
 import { PartyMainCategoryMapService } from '../../../core/services/party-main-category-map.service';
+import { Roles } from '../../../shared/constants/roles';
 declare var bootstrap: any;
 
 @Component({
@@ -67,10 +68,38 @@ export class CreateBalanceLedgerComponent {
   isLoading: boolean = false;
   balanceLedgerItems: BalanceLedgerItem[] = [];
   
+  // Status and role-based properties
+  statusOptions = [
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
+  ];
+  
   // Hierarchy data
   parties: Party[] = [];
   mainCategories: MainCategory[] = [];
   subCategories: SubCategory[] = [];
+
+  // Role-based permission methods
+  get isSupervisor(): boolean {
+    return this.appUser?.role === Roles.SUPERVISOR;
+  }
+
+  get isAdmin(): boolean {
+    return this.appUser?.role === Roles.ADMIN || this.appUser?.role === Roles.SUPER_ADMIN;
+  }
+
+  get canManageHierarchy(): boolean {
+    return this.isAdmin; // Only admins can manage categories, parties, subcategories, items
+  }
+
+  get canEditEntry(): boolean {
+    if (this.isAdmin) return true;
+    if (this.isSupervisor) {
+      return this.existingLedger?.status === 'pending' || !this.existingLedger;
+    }
+    return false;
+  }
 
   // Unit options for dropdown
   unitOptions = [
@@ -139,7 +168,8 @@ export class CreateBalanceLedgerComponent {
         rate: NumberUtils.sanitizeToInteger(formValue.rate),
         amount: NumberUtils.sanitizeToInteger(formValue.amount),
         credit: NumberUtils.sanitizeToInteger(formValue.credit),
-        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+        balance: NumberUtils.sanitizeToInteger(formValue.balance),
+        status: this.isSupervisor ? 'pending' : formValue.status // Supervisors can only create pending entries
       };
       
       this.balanceLedgerService.createLedger(
@@ -177,7 +207,8 @@ export class CreateBalanceLedgerComponent {
         rate: NumberUtils.sanitizeToInteger(formValue.rate),
         amount: NumberUtils.sanitizeToInteger(formValue.amount),
         credit: NumberUtils.sanitizeToInteger(formValue.credit),
-        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+        balance: NumberUtils.sanitizeToInteger(formValue.balance),
+        status: this.isSupervisor ? 'pending' : formValue.status // Supervisors can only create pending entries
       };
       
       this.balanceLedgerService.updateLedger(this.ledgerId, sanitizedFormValue)
@@ -488,11 +519,25 @@ export class CreateBalanceLedgerComponent {
   }
 
   private handleFormValidation() {
+    // Check if user can edit this entry
+    if (!this.canEditEntry && this.existingLedger) {
+      // Disable all fields if user cannot edit
+      this.balanceLedgerForm.disable();
+      return;
+    }
+
     // For existing ledger
     if (this.existingLedger) {
-      this.balanceLedgerForm.get('rate')?.disable();
-      this.balanceLedgerForm.get('quantity')?.disable();
-      this.balanceLedgerForm.get('credit')?.disable();
+      // Only disable quantity/rate/credit for approved entries (supervisors can't edit)
+      if (this.existingLedger.status === 'approved' && this.isSupervisor) {
+        this.balanceLedgerForm.get('rate')?.disable();
+        this.balanceLedgerForm.get('quantity')?.disable();
+        this.balanceLedgerForm.get('credit')?.disable();
+      } else {
+        this.balanceLedgerForm.get('rate')?.enable();
+        this.balanceLedgerForm.get('quantity')?.enable();
+        this.balanceLedgerForm.get('credit')?.enable();
+      }
       
       // Enable party and main category for existing ledger (they have values)
       if (this.existingLedger.party) {
@@ -514,6 +559,16 @@ export class CreateBalanceLedgerComponent {
       this.balanceLedgerForm.get('party')?.enable();
       this.balanceLedgerForm.get('mainCategory')?.disable();
       this.balanceLedgerForm.get('subCategory')?.disable();
+    }
+
+    // Handle status field based on role and mode
+    if (this.isAdmin && this.existingLedger) {
+      // Enable status field for admins in edit mode
+      this.balanceLedgerForm.get('status')?.enable();
+    } else {
+      // Disable status field for supervisors or new entries
+      this.balanceLedgerForm.get('status')?.disable();
+      this.balanceLedgerForm.get('status')?.setValue('pending');
     }
 
     this.balanceLedgerForm.updateValueAndValidity();
@@ -620,6 +675,9 @@ export class CreateBalanceLedgerComponent {
       balance: [{ value: 0, disabled: true }],
       date: [DateUtils.getTodayDate()],
       description: [''],
+      status: [{ value: 'pending', disabled: true }], // Default status, disabled by default
+      approvedBy: [''],
+      approvedByName: [''],
     }, { validators: balanceLedgerFormValidation() });
   }
 

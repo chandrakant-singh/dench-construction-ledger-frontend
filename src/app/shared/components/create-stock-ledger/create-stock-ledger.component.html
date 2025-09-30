@@ -13,10 +13,10 @@
             <option value=null>Select Category</option>
             <option *ngFor="let category of mainCategories" [value]="category.name">{{ category.name }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Category">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Category">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-main')" title="Manage Categories">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-main')" title="Manage Categories">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -35,10 +35,10 @@
             <option value=null>Select Sub Category</option>
             <option *ngFor="let sub of subCategories" [value]="sub.name">{{ sub.name }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-sub')" title="Manage Sub Categories">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-sub')" title="Manage Sub Categories">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -56,10 +56,10 @@
             <option value=null>Select Party</option>
             <option *ngFor="let party of parties" [value]="party.name">{{ party.name }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -101,6 +101,17 @@
           <label class="form-label">Description</label>
           <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
         </div>
+
+      <!-- Status (only visible to admins) -->
+      <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
+        <label class="form-label">Status</label>
+        <select class="form-select" formControlName="status">
+          <option value="">Select</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
 
       <div class="col-12 text-end">
         <app-loading-button [btnClass]="'btn btn-primary btn-sm'" [isLoading]="isLoading"

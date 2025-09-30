@@ -1,5 +1,5 @@
 export interface StockLedgerEntry {
-  id?: string;
+  id: string;
   mainCategory: string;
   party: string;
   subCategory: string;
@@ -9,8 +9,11 @@ export interface StockLedgerEntry {
   description: string;
   date: string;
   createdBy: string;
-  updatedBy: string;
+  updatedBy?: string;
   createdAt: Date;
-  updatedAt: Date;
-  createdByName: string;
+  updatedAt?: Date;
+  createdByName?: string;
+  status: string;
+  approvedBy?: string;
+  approvedByName?: string;
 }

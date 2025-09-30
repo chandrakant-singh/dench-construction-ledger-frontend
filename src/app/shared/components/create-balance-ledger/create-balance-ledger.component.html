@@ -13,10 +13,10 @@
             <option value="">Select Party</option>
             <option *ngFor="let party of getAllParties()" [value]="party">{{ party }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('party')" title="Add Party">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-party')" title="Manage Parties">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -34,10 +34,10 @@
             <option value="">Select Main Category</option>
             <option *ngFor="let category of getMainCategoriesForParty(balanceLedgerForm.get('party')?.value)" [value]="category">{{ category }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Main Category">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('main')" title="Add Main Category">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-main')" title="Manage Main Categories">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-main')" title="Manage Main Categories">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -55,10 +55,10 @@
             <option value="">Select Sub Category</option>
             <option *ngFor="let subCategory of getSubCategoriesForPartyAndMainCategory(balanceLedgerForm.get('party')?.value, balanceLedgerForm.get('mainCategory')?.value)" [value]="subCategory">{{ subCategory }}</option>
           </select>
-          <button class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
+          <button *ngIf="canManageHierarchy" class="btn btn-success btn-sm ms-2" type="button" (click)="openDialog('sub')" title="Add Sub Category">
             <i class="bi bi-plus"></i>
           </button>
-          <button class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-sub')" title="Manage Sub Categories">
+          <button *ngIf="canManageHierarchy" class="btn btn-info btn-sm ms-1" type="button" (click)="openDialog('manage-sub')" title="Manage Sub Categories">
             <i class="bi bi-gear"></i>
           </button>
         </div>
@@ -119,6 +119,17 @@
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Description</label>
         <textarea type="text" class="form-control" formControlName="description" rows="2"></textarea>
+      </div>
+
+      <!-- Status (only visible to admins) -->
+      <div class="col-lg-4 col-md-6" *ngIf="isAdmin">
+        <label class="form-label">Status</label>
+        <select class="form-select" formControlName="status">
+          <option value="">Select</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
       </div>
 
       <div class="col-12 text-end">

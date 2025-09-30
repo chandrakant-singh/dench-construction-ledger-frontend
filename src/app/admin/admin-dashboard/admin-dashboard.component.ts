@@ -16,6 +16,7 @@ import { GenericFilterComponent } from '../../shared/components/generic-filter/g
 import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
 import { AppUser } from '../../core/models/user.model';
 import { ToastService } from '../../core/services/toaster.service';
+import { RoleUtils } from '../../core/utils/role.utils';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -79,7 +80,8 @@ export class AdminDashboardComponent {
     private readonly route: ActivatedRoute,
     private readonly ledgerService: LedgerService,
     private cdr: ChangeDetectorRef,
-    private readonly toastService: ToastService
+    private readonly toastService: ToastService,
+    private readonly roleUtils: RoleUtils
   ) {
   }
 
@@ -220,6 +222,13 @@ export class AdminDashboardComponent {
 
   onStatusChange(row: LedgerEntryReq) {
     console.log('Status changed for row:', row);
+
+    // Check if user can approve entries
+    if (!this.roleUtils.canApproveEntries()) {
+      this.toastService.show('You do not have permission to approve entries', 'danger');
+      return;
+    }
+
     // Update status in Firebase or local array
     row.status = row.status === 'pending' ? 'approved' : 'pending';
     row.approvedBy = StorageUtils.getUid();

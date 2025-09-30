@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Offcanvas } from 'bootstrap';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
 import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
@@ -11,16 +11,14 @@ import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
 import { CreateStockLedgerComponent } from "../../shared/components/create-stock-ledger/create-stock-ledger.component";
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
-import { Offcanvas } from 'bootstrap';
 import { StockLedgerCategoryService } from '../../core/services/stock-ledger-category.service';
-import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.model';
 import { ToastService } from '../../core/services/toaster.service';
 import { NumberUtils } from '../../core/utils/number.utils';
 import { StorageUtils } from '../../core/utils/storage.utils';
 import { RoleUtils } from '../../core/utils/role.utils';
 
 @Component({
-  selector: 'app-list-stock-ledger',
+  selector: 'app-supervisor-list-stock-ledger',
   imports: [
     CommonModule,
     FormsModule,
@@ -32,7 +30,7 @@ import { RoleUtils } from '../../core/utils/role.utils';
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
 })
-export class ListStockLedgerComponent {
+export class SupervisorListStockLedgerComponent {
   isEditMode: boolean = true;
   isAccordionOpen = false;
   searchTerm: string = '';
@@ -40,32 +38,36 @@ export class ListStockLedgerComponent {
   todayEntries: StockLedgerEntry[] = []; // Today's entries for edit mode
   lastStockLedger: StockLedgerEntry | null = null;
   private searchTimeout: any;
-  // categories: StoreLedgerCategory = {
-  //   id: '',
-  //   category: {},
-  //   createdBy: '',
-  //   updatedBy: '',
-  //   createdAt: new Date(),
-  //   updatedAt: new Date(),
-  //   createdByName: ''
-  // };
 
+  // Filter options
   mainCategory: string[] = [];
   parties: string[] = [];
   subCategory: string[] = [];
 
+  // Data
   ledgerData: Array<StockLedgerEntry> = [];
   showLedgerForm: boolean = false;
 
+  // Loading
   isLoading: boolean = false;
   deleteProgress: number = 0;
 
-  ledgerColumns: any[] = [];
+  ledgerColumns = [
+    { name: 'Date', prop: 'date' },
+    { name: 'Main Category', prop: 'mainCategory' },
+    { name: 'Sub Category', prop: 'subCategory' },
+    { name: 'Party', prop: 'party' },
+    { name: 'Stock In', prop: 'stockIn' },
+    { name: 'Stock Out', prop: 'stockOut' },
+    { name: 'Balance', prop: 'balance' },
+    { name: 'Status', prop: 'status' },
+    // { name: 'Description', prop: 'description' },
+  ];
 
   // Export configuration
   exportConfig: ExportConfig = {
-    filename: 'stock-ledger',
-    title: 'Stock Ledger Report',
+    filename: 'supervisor-stock-ledger',
+    title: 'Supervisor Stock Ledger Report',
     showBalance: true,
     columns: [
       { header: 'Date', key: 'date', width: 20 },
@@ -75,13 +77,14 @@ export class ListStockLedgerComponent {
       { header: 'Stock In', key: 'stockIn', width: 20, align: 'right' },
       { header: 'Stock Out', key: 'stockOut', width: 20, align: 'right' },
       { header: 'Balance', key: 'balance', width: 20, align: 'right' },
+      { header: 'Status', key: 'status', width: 15 }
       // { header: 'Description', key: 'description', width: 35 }
     ]
   };
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
+    public readonly route: ActivatedRoute,
     private readonly stockLedgerService: StockLedgerService,
     private cdr: ChangeDetectorRef,
     private readonly stockLedgerCategoryService: StockLedgerCategoryService,
@@ -90,22 +93,10 @@ export class ListStockLedgerComponent {
   ) { }
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
     this.initializeComponent();
   }
 
   private initializeComponent() {
-    this.ledgerColumns = [
-      { name: 'Date', prop: 'date' },
-      { name: 'Main Category', prop: 'mainCategory' },
-      { name: 'Sub Category', prop: 'subCategory' },
-      { name: 'Party', prop: 'party' },
-      { name: 'Stock In', prop: 'stockIn' },
-      { name: 'Stock Out', prop: 'stockOut' },
-      { name: 'Balance', prop: 'balance' },
-      // { name: 'Description', prop: 'description' },
-    ];
     this.isLoading = true;
     this.getLedgerEntries();
     this.getLastStockLedger();
@@ -140,11 +131,26 @@ export class ListStockLedgerComponent {
 
   onEditLedger(row: any) {
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_STOCK_LEDGER], { queryParams: { mode: 'update', id: row.id } });
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_STOCK_LEDGER], { queryParams: { mode: 'update', id: row.id } });
     this.showHideCreateAndUpdateForm();
   }
 
+  onStatusChange(row: StockLedgerEntry) {
+    console.log('Supervisor - Status changed for row:', row);
+    // Check if user can approve entries
+    if (!this.roleUtils.canApproveEntries()) {
+      this.toastService.show('You do not have permission to approve entries', 'danger');
+      return;
+    }
+  }
+
+  // Supervisors can only delete pending entries
   onDeleteLedger(row: any) {
+    if (row.status !== 'pending') {
+      this.toastService.show('Only pending entries can be deleted', 'info');
+      return;
+    }
+
     const confirmDelete = confirm(
       `Are you sure you want to delete this stock ledger entry?\n\n` +
       `This will:\n` +
@@ -190,32 +196,8 @@ export class ListStockLedgerComponent {
   createEntry() {
     console.log('Create Entry');
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_STOCK_LEDGER], { queryParams: { mode: 'create' } });
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_STOCK_LEDGER], { queryParams: { mode: 'create' } });
     this.showHideCreateAndUpdateForm();
-  }
-
-  onStatusChange(row: StockLedgerEntry) {
-    console.log('Status changed for row:', row);
-
-    // Check if user can approve entries
-    if (!this.roleUtils.canApproveEntries()) {
-      this.toastService.show('You do not have permission to approve entries', 'danger');
-      return;
-    }
-
-    // Update status in Firebase or local array
-    row.status = row.status === 'pending' ? 'approved' : 'pending';
-    row.approvedBy = StorageUtils.getUid();
-    row.approvedByName = StorageUtils.getUserName();
-    this.stockLedgerService.updateLedger(row.id!, row)
-      .subscribe({
-        next: () => {
-          this.getLedgerEntries();
-        },
-        error: (error) => {
-          console.error('Error updating stock ledger entry:', error);
-        }
-      })
   }
 
   public getCategories() {
@@ -259,7 +241,7 @@ export class ListStockLedgerComponent {
     console.log(event);
     if (event) {
       this.showLedgerForm = false;
-      this.router.navigate([EndPoints.LIST_STOCK_LEDGER]);
+      this.router.navigate([EndPoints.SUPERVISOR_LIST_STOCK_LEDGER]);
       this.initializeComponent();
     }
   }
@@ -267,7 +249,7 @@ export class ListStockLedgerComponent {
   public preview() {
     this.isEditMode = !this.isEditMode;
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_STOCK_LEDGER]);
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_STOCK_LEDGER]);
     this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
     this.initializeComponent();
   }
@@ -278,7 +260,7 @@ export class ListStockLedgerComponent {
   }
 
   private getLedgerEntries() {
-    this.stockLedgerService.getLedgerEntries().subscribe(
+    this.stockLedgerService.getLedgerEntries(StorageUtils.getUid()).subscribe(
       {
         next: (ledgerEntries: any) => {
           // Sanitize all stock ledger entries to ensure stockIn, stockOut, and balance are integers
@@ -464,36 +446,6 @@ export class ListStockLedgerComponent {
       ...this.exportConfig,
       currentBalance: this.currentBalance
     };
-  }
-
-  // ==================== ROLE-BASED GETTERS ====================
-
-  get canCreateEntries(): boolean {
-    return this.roleUtils.canCreateEntries();
-  }
-
-  get canEditEntries(): boolean {
-    return this.roleUtils.canEditEntries();
-  }
-
-  get canDeleteEntries(): boolean {
-    return this.roleUtils.canDeleteEntries();
-  }
-
-  get canApproveEntries(): boolean {
-    return this.roleUtils.canApproveEntries();
-  }
-
-  get canExportData(): boolean {
-    return this.roleUtils.canExportData();
-  }
-
-  get currentUserDisplayName(): string {
-    return this.roleUtils.getUserDisplayName();
-  }
-
-  get currentUserRole(): string | null {
-    return this.roleUtils.getCurrentUserRole();
   }
 
   // Export event handlers

@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Offcanvas } from 'bootstrap';
 
 import { NgxDatatableComponent } from '../../shared/components/ngx-datatable/ngx-datatable.component';
 import { ExportDropdownComponent, ExportConfig } from '../../shared/components/export-dropdown/export-dropdown.component';
@@ -12,14 +12,13 @@ import { BalanceLedgerService } from '../../core/services/balance-ledger.service
 import { CreateBalanceLedgerComponent } from '../../shared/components/create-balance-ledger/create-balance-ledger.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
 import { BalanceLedgerItemService } from '../../core/services/balance-ledger-item.service';
-import { Offcanvas } from 'bootstrap';
 import { ToastService } from '../../core/services/toaster.service';
 import { NumberUtils } from '../../core/utils/number.utils';
 import { StorageUtils } from '../../core/utils/storage.utils';
 import { RoleUtils } from '../../core/utils/role.utils';
 
 @Component({
-  selector: 'app-list-balance-ledger',
+  selector: 'app-supervisor-list-balance-ledger',
   imports: [
     CommonModule,
     FormsModule,
@@ -31,7 +30,7 @@ import { RoleUtils } from '../../core/utils/role.utils';
   templateUrl: './list-balance-ledger.component.html',
   styleUrl: './list-balance-ledger.component.scss'
 })
-export class ListBalanceLedgerComponent {
+export class SupervisorListBalanceLedgerComponent {
   isEditMode: boolean = true;
   isAccordionOpen = false;
   searchTerm: string = '';
@@ -40,6 +39,7 @@ export class ListBalanceLedgerComponent {
   lastLedger: BalanceLedgerEntry | null = null;
   private searchTimeout: any;
 
+  // Data
   ledgerData: Array<BalanceLedgerEntry> = [];
   showLedgerForm: boolean = false;
   items: BalanceLedgerItem[] = [];
@@ -49,59 +49,62 @@ export class ListBalanceLedgerComponent {
   mainCategories: string[] = [];
   subCategories: string[] = [];
 
+  // Loading
   isLoading: boolean = false;
   deleteProgress: number = 0;
 
-  ledgerColumns: any[] = [];
+  roleUtils: RoleUtils = inject(RoleUtils);
+
+  ledgerColumns = [
+    { name: 'Date', prop: 'date' },
+    { name: 'Party', prop: 'party' },
+    { name: 'Main Category', prop: 'mainCategory' },
+    { name: 'Sub Category', prop: 'subCategory' },
+    { name: 'Item', prop: 'itemName' },
+    { name: 'Quantity', prop: 'quantity' },
+    { name: 'Rate', prop: 'rate' },
+    { name: 'Unit', prop: 'unit' },
+    { name: 'Amount', prop: 'amount' },
+    { name: 'Credit', prop: 'credit' },
+    { name: 'Balance', prop: 'balance' },
+    { name: 'Status', prop: 'status' },
+    // { name: 'Description', prop: 'description' },
+  ];
 
   // Export configuration
   exportConfig: ExportConfig = {
-    filename: 'balance-ledger',
-    title: 'Balance Ledger Report',
+    filename: 'supervisor-balance-ledger',
+    title: 'Supervisor Balance Ledger Report',
     showBalance: true,
     columns: [
-      { header: 'Date', key: 'date', width: 18 },
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Party', key: 'party', width: 20 },
       { header: 'Item', key: 'itemName', width: 25 },
-      { header: 'Quantity', key: 'quantity', width: 16, align: 'right' },
-      { header: 'Rate', key: 'rate', width: 16, align: 'right' },
-      { header: 'Unit', key: 'unit', width: 15 },
-      { header: 'Amount', key: 'amount', width: 18, align: 'right' },
-      { header: 'Credit', key: 'credit', width: 16, align: 'right' },
-      { header: 'Balance', key: 'balance', width: 18, align: 'right' },
+      { header: 'Quantity', key: 'quantity', width: 12, align: 'right' },
+      { header: 'Rate', key: 'rate', width: 12, align: 'right' },
+      { header: 'Unit', key: 'unit', width: 12 },
+      { header: 'Amount', key: 'amount', width: 15, align: 'right' },
+      { header: 'Credit', key: 'credit', width: 15, align: 'right' },
+      { header: 'Balance', key: 'balance', width: 15, align: 'right' },
+      { header: 'Status', key: 'status', width: 12 }
       // { header: 'Description', key: 'description', width: 40 }
     ]
   };
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
+    public readonly route: ActivatedRoute,
     private readonly balanceLedgerService: BalanceLedgerService,
     private readonly balanceLedgerItemService: BalanceLedgerItemService,
     private cdr: ChangeDetectorRef,
-    private readonly toastService: ToastService,
-    private readonly roleUtils: RoleUtils
+    private readonly toastService: ToastService
   ) { }
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
     this.initializeComponent();
   }
 
   private initializeComponent() {
-    this.ledgerColumns = [
-      { name: 'Date', prop: 'date' },
-      { name: 'Main Category', prop: 'mainCategory' },
-      { name: 'Sub Category', prop: 'subCategory' },
-      { name: 'Party', prop: 'party' },
-      { name: 'Quantity', prop: 'quantity' },
-      { name: 'Rate', prop: 'rate' },
-      { name: 'Unit', prop: 'unit' },
-      { name: 'Amount', prop: 'amount' },
-      { name: 'Credit', prop: 'credit' },
-      { name: 'Balance', prop: 'balance' },
-      // { name: 'Description', prop: 'description' },
-    ];
     this.isLoading = true;
     this.getLedgerEntries();
     this.getLastBalanceLedger();
@@ -135,11 +138,26 @@ export class ListBalanceLedgerComponent {
 
   onEditLedger(row: any) {
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_BALANCE_LEDGER], { queryParams: { mode: 'update', id: row.id } });
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_BALANCE_LEDGER], { queryParams: { mode: 'update', id: row.id } });
     this.showHideCreateAndUpdateForm();
   }
 
+  onStatusChange(row: BalanceLedgerEntry) {
+    console.log('Supervisor - Status changed for row:', row);
+    // Check if user can approve entries
+    if (!this.roleUtils.canApproveEntries()) {
+      this.toastService.show('You do not have permission to approve entries', 'danger');
+      return;
+    }
+  }
+
+  // Supervisors can only delete pending entries
   onDeleteLedger(row: any) {
+    if (row.status !== 'pending') {
+      this.toastService.show('Only pending entries can be deleted', 'info');
+      return;
+    }
+
     const confirmDelete = confirm(
       `Are you sure you want to delete this balance ledger entry?\n\n` +
       `This will:\n` +
@@ -147,11 +165,11 @@ export class ListBalanceLedgerComponent {
       `• Recalculate balances for all subsequent entries\n` +
       `• This action cannot be undone`
     );
-    
+
     if (confirmDelete) {
       this.isLoading = true;
       console.log('Deleting balance ledger entry:', row);
-      
+
       // Progress callback for large operations
       const progressCallback = (progress: number) => {
         this.deleteProgress = progress;
@@ -184,45 +202,15 @@ export class ListBalanceLedgerComponent {
 
   createEntry() {
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_BALANCE_LEDGER], { queryParams: { mode: 'create' } });
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_BALANCE_LEDGER], { queryParams: { mode: 'create' } });
     this.showHideCreateAndUpdateForm();
   }
-
-  onStatusChange(row: BalanceLedgerEntry) {
-    console.log('Status changed for row:', row);
-    
-    // Check if user can approve entries
-    if (!this.roleUtils.canApproveEntries()) {
-      this.toastService.show('You do not have permission to approve entries', 'danger');
-      return;
-    }
-    
-    // Update status in Firebase or local array
-    row.status = row.status === 'pending' ? 'approved' : 'pending';
-    row.approvedBy = this.roleUtils.getCurrentUserId() || undefined;
-    row.approvedByName = this.roleUtils.getCurrentUserName() || undefined;
-    
-    this.balanceLedgerService.updateLedger(row.id!, row)
-      .subscribe({
-        next: () => {
-          this.toastService.show(`Entry ${row.status === 'approved' ? 'approved' : 'reverted to pending'} successfully`, 'success');
-          this.getLedgerEntries();
-        },
-        error: (error) => {
-          console.error('Error updating balance ledger entry:', error);
-          this.toastService.show('Error updating entry status. Please try again.', 'danger');
-        }
-      })
-  }
-
-
-
 
   closeLedgerForm(event: boolean) {
     console.log(event);
     if (event) {
       this.showLedgerForm = false;
-      this.router.navigate([EndPoints.LIST_BALANCE_LEDGER]);
+      this.router.navigate([EndPoints.SUPERVISOR_LIST_BALANCE_LEDGER]);
       this.initializeComponent();
     }
   }
@@ -230,7 +218,7 @@ export class ListBalanceLedgerComponent {
   public preview() {
     this.isEditMode = !this.isEditMode;
     this.showLedgerForm = false;
-    this.router.navigate([EndPoints.LIST_BALANCE_LEDGER]);
+    this.router.navigate([EndPoints.SUPERVISOR_LIST_BALANCE_LEDGER]);
     this.filteredRows = this.isEditMode ? this.todayEntries : this.ledgerData;
     this.initializeComponent();
   }
@@ -334,7 +322,6 @@ export class ListBalanceLedgerComponent {
     }, 500); // Slight delay ensures transition is complete
   }
 
-
   public getCategories(): void {
     this.balanceLedgerItemService.getAll().subscribe({
       next: (items) => {
@@ -369,7 +356,7 @@ export class ListBalanceLedgerComponent {
   }
 
   private getLedgerEntries() {
-    this.balanceLedgerService.getLedgerEntries().subscribe(
+    this.balanceLedgerService.getLedgerEntries(StorageUtils.getUid()).subscribe(
       {
         next: (ledgerEntries: any) => {
           // Sanitize all balance ledger entries to ensure amount, credit, and balance are integers
@@ -455,10 +442,10 @@ export class ListBalanceLedgerComponent {
 
   get todaysBalance(): number | null {
     if (!this.todayEntries || this.todayEntries.length === 0) return null;
-    const totalCreditSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
+    const totalCreditSum = this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
       return acc + NumberUtils.sanitizeToInteger(curr.amount);
     }, 0);
-    const totalDebitSum =  this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
+    const totalDebitSum = this.todayEntries.reduce((acc: number, curr: BalanceLedgerEntry) => {
       return acc + NumberUtils.sanitizeToInteger(curr.credit);
     }, 0);
     return totalCreditSum - totalDebitSum;
@@ -473,36 +460,6 @@ export class ListBalanceLedgerComponent {
       ...this.exportConfig,
       currentBalance: this.currentBalance
     };
-  }
-
-  // ==================== ROLE-BASED GETTERS ====================
-
-  get canCreateEntries(): boolean {
-    return this.roleUtils.canCreateEntries();
-  }
-
-  get canEditEntries(): boolean {
-    return this.roleUtils.canEditEntries();
-  }
-
-  get canDeleteEntries(): boolean {
-    return this.roleUtils.canDeleteEntries();
-  }
-
-  get canApproveEntries(): boolean {
-    return this.roleUtils.canApproveEntries();
-  }
-
-  get canExportData(): boolean {
-    return this.roleUtils.canExportData();
-  }
-
-  get currentUserDisplayName(): string {
-    return this.roleUtils.getUserDisplayName();
-  }
-
-  get currentUserRole(): string | null {
-    return this.roleUtils.getCurrentUserRole();
   }
 
   // Export event handlers

@@ -59,6 +59,16 @@ export const NAV_ITEMS = [
     path: '/supervisor/dashboard',
     roles: ['supervisor']
   },
+  {
+    label: 'List Stock Ledger',
+    path: '/supervisor/list-stock-ledger',
+    roles: ['supervisor']
+  },
+  {
+    label: 'List Balance Ledger',
+    path: '/supervisor/list-balance-ledger',
+    roles: ['supervisor']
+  }
   // {
   //   label: 'Add Ledger Entry',
   //   path: '/supervisor/add-entry',

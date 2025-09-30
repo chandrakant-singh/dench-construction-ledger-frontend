@@ -19,6 +19,7 @@ import { HierarchyService } from '../../../core/services/hierarchy.service';
 import { Party } from '../../../core/models/party.model';
 import { MainCategory } from '../../../core/models/main-category.model';
 import { SubCategory } from '../../../core/models/sub-category.model';
+import { Roles } from '../../../shared/constants/roles';
 declare var bootstrap: any;
 
 @Component({
@@ -52,11 +53,39 @@ export class CreateStockLedgerComponent {
   existingLedger: StockLedgerEntry | null = null;
   isLoading: boolean = false;
   existingStockLedgerCategory!: StoreLedgerCategory;
+  
+  // Status and role-based properties
+  statusOptions = [
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
+  ];
 
   // Private properties for optimized queries
   private _parties: Party[] = [];
   private _subCategories: SubCategory[] = [];
   private _mainCategories: MainCategory[] = [];
+
+  // Role-based permission methods
+  get isSupervisor(): boolean {
+    return this.appUser?.role === Roles.SUPERVISOR;
+  }
+
+  get isAdmin(): boolean {
+    return this.appUser?.role === Roles.ADMIN || this.appUser?.role === Roles.SUPER_ADMIN;
+  }
+
+  get canManageHierarchy(): boolean {
+    return this.isAdmin; // Only admins can manage categories, parties, subcategories
+  }
+
+  get canEditEntry(): boolean {
+    if (this.isAdmin) return true;
+    if (this.isSupervisor) {
+      return this.existingLedger?.status === 'pending' || !this.existingLedger;
+    }
+    return false;
+  }
 
   constructor(
     private readonly fb: FormBuilder,
@@ -96,7 +125,8 @@ export class CreateStockLedgerComponent {
         ...formValue,
         stockIn: NumberUtils.sanitizeToInteger(formValue.stockIn),
         stockOut: NumberUtils.sanitizeToInteger(formValue.stockOut),
-        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+        balance: NumberUtils.sanitizeToInteger(formValue.balance),
+        status: this.isSupervisor ? 'pending' : formValue.status // Supervisors can only create pending entries
       };
       
       this.stockLedgerService.createLedger(
@@ -132,7 +162,8 @@ export class CreateStockLedgerComponent {
         ...formValue,
         stockIn: NumberUtils.sanitizeToInteger(formValue.stockIn),
         stockOut: NumberUtils.sanitizeToInteger(formValue.stockOut),
-        balance: NumberUtils.sanitizeToInteger(formValue.balance)
+        balance: NumberUtils.sanitizeToInteger(formValue.balance),
+        status: this.isSupervisor ? 'pending' : formValue.status // Supervisors can only create pending entries
       };
       
       this.stockLedgerService.updateLedger(this.ledgerId, sanitizedFormValue)
@@ -545,10 +576,23 @@ export class CreateStockLedgerComponent {
   }
 
   private handleFormValidation() {
+    // Check if user can edit this entry
+    if (!this.canEditEntry && this.existingLedger) {
+      // Disable all fields if user cannot edit
+      this.stockLedgerForm.disable();
+      return;
+    }
+
     // For existing ledger
     if (this.existingLedger) {
-      this.stockLedgerForm.get('stockIn')?.disable();
-      this.stockLedgerForm.get('stockOut')?.disable();
+      // Only disable stockIn/stockOut for approved entries (supervisors can't edit)
+      if (this.existingLedger.status === 'approved' && this.isSupervisor) {
+        this.stockLedgerForm.get('stockIn')?.disable();
+        this.stockLedgerForm.get('stockOut')?.disable();
+      } else {
+        this.stockLedgerForm.get('stockIn')?.enable();
+        this.stockLedgerForm.get('stockOut')?.enable();
+      }
 
       // Enable fields for existing ledger (they have values)
       if (this.existingLedger.mainCategory) {
@@ -569,6 +613,16 @@ export class CreateStockLedgerComponent {
       this.stockLedgerForm.get('mainCategory')?.enable();
       this.stockLedgerForm.get('subCategory')?.disable();
       this.stockLedgerForm.get('party')?.disable();
+    }
+
+    // Handle status field based on role and mode
+    if (this.isAdmin && this.existingLedger) {
+      // Enable status field for admins in edit mode
+      this.stockLedgerForm.get('status')?.enable();
+    } else {
+      // Disable status field for supervisors or new entries
+      this.stockLedgerForm.get('status')?.disable();
+      this.stockLedgerForm.get('status')?.setValue('pending');
     }
 
     this.stockLedgerForm.updateValueAndValidity();
@@ -659,6 +713,7 @@ export class CreateStockLedgerComponent {
       balance: [{ value: 0, disabled: true }],
       date: [DateUtils.getTodayDate()],
       description: [''],
+      status: [{ value: 'pending', disabled: true }] // Default status, disabled by default
     }, { validators: creditOrDebitRequired('stockIn', 'stockOut') });
   }
 

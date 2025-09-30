@@ -22,5 +22,7 @@ export enum EndPoints {
 
   // Supervisor
   SUPERVISOR_DASHBOARD = 'supervisor/dashboard',
-  SUPERVISOR_ADD_ENTRY = 'supervisor/add-entry'
+  SUPERVISOR_ADD_ENTRY = 'supervisor/add-entry',
+  SUPERVISOR_LIST_STOCK_LEDGER = 'supervisor/list-stock-ledger',
+  SUPERVISOR_LIST_BALANCE_LEDGER = 'supervisor/list-balance-ledger'
 }

@@ -1,5 +1,5 @@
 export interface BalanceLedgerEntry {
-  id?: string;
+  id: string;
   party: string;
   mainCategory: string;
   subCategory: string;
@@ -14,10 +14,13 @@ export interface BalanceLedgerEntry {
   description: string;
   date: string;
   createdBy: string;
-  updatedBy: string;
+  updatedBy?: string;
   createdAt: Date;
-  updatedAt: Date;
-  createdByName: string;
+  updatedAt?: Date;
+  createdByName?: string;
+  status: string;
+  approvedBy?: string;
+  approvedByName?: string;
 }
 
 export interface BalanceLedgerEntryReq {
@@ -36,10 +39,13 @@ export interface BalanceLedgerEntryReq {
   description: string;
   date: string;
   createdBy: string;
-  updatedBy: string;
+  updatedBy?: string;
   createdAt: Date;
-  updatedAt: Date;
-  createdByName: string;
+  updatedAt?: Date;
+  createdByName?: string;
+  status: string;
+  approvedBy?: string;
+  approvedByName?: string;
 }
 
 export interface BalanceLedgerItem {

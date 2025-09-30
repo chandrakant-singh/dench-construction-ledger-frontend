@@ -20,7 +20,7 @@
       </button>
 
       <!-- Create Entry Button -->
-      <button *ngIf="isEditMode && canCreateEntries"
+      <button *ngIf="isEditMode"
               class="btn btn-primary btn-sm mx-1"
               type="button"
               (click)="createEntry()">
@@ -29,7 +29,7 @@
 
       <!-- Export Dropdown -->
       <app-export-dropdown 
-        *ngIf="!isEditMode && canExportData"
+        *ngIf="!isEditMode"
         [data]="filteredRows"
         [config]="currentExportConfig"
         (exportStarted)="onExportStarted($event)"
@@ -87,9 +87,7 @@
                     [columns]="ledgerColumns"
                     header=""
                     [headerHelperText]="''"
-                    [canEdit]="canEditEntries"
-                    [canDelete]="canDeleteEntries"
-                    [canApprove]="canApproveEntries"
+                    [canDelete]="true"
                     (rowEdit)="onEditLedger($event)"
                     (rowDelete)="onDeleteLedger($event)"
                     (statusChange)="onStatusChange($event)">
@@ -102,13 +100,11 @@
           <!-- View Mode: Full Table -->
           <ng-template #fullTable>
             <app-ngx-datatable
-              [rows]="filteredRows" 
+              [rows]="filteredRows"
               [columns]="ledgerColumns"
               header=""
               [headerHelperText]="''"
-              [canEdit]="canEditEntries"
-              [canDelete]="canDeleteEntries"
-              [canApprove]="canApproveEntries"
+              [canDelete]="true"
               (rowEdit)="onEditLedger($event)"
               (rowDelete)="onDeleteLedger($event)"
               (statusChange)="onStatusChange($event)">

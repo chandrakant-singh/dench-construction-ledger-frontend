@@ -19,6 +19,14 @@ const routes: Routes = [
       {
         path: 'add-entry',
         loadComponent: () => import('./add-entry/add-entry.component').then((m) => m.AddEntryComponent)
+      },
+      {
+        path: 'list-stock-ledger',
+        loadComponent: () => import('./list-stock-ledger/list-stock-ledger.component').then((m) => m.SupervisorListStockLedgerComponent)
+      },
+      {
+        path: 'list-balance-ledger',
+        loadComponent: () => import('./list-balance-ledger/list-balance-ledger.component').then((m) => m.SupervisorListBalanceLedgerComponent)
       }
     ]
   }

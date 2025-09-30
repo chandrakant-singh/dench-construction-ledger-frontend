@@ -41,7 +41,8 @@ export class BalanceLedgerService {
       ...entry,
       createdAt: timestamp,
       updatedAt: timestamp,
-      createdByName: StorageUtils.getUserName()
+      createdByName: StorageUtils.getUserName(),
+      status: entry.status || 'pending' // Default to pending if not specified
     };
     return from(addDoc(this.collectionRef, data)).pipe(
       map(docRef => docRef.id)
@@ -53,6 +54,17 @@ export class BalanceLedgerService {
     const docRef = doc(this.firestore, `balance-ledger/${id}`);
     return from(updateDoc(docRef, {
       ...updates,
+      updatedAt: new Date()
+    }));
+  }
+
+  // 📝 Update balance ledger status (approve/reject)
+  public updateBalanceLedgerStatus(id: string, status: string): Observable<void> {
+    const docRef = doc(this.firestore, `balance-ledger/${id}`);
+    return from(updateDoc(docRef, {
+      status: status,
+      approvedBy: StorageUtils.getUid(),
+      approvedByName: StorageUtils.getUserName(),
       updatedAt: new Date()
     }));
   }
@@ -215,10 +227,13 @@ export class BalanceLedgerService {
 
     return from(getDocs(q)).pipe(
       map(snapshot =>
-        snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...(doc.data() as BalanceLedgerEntry)
-        }))
+        snapshot.docs.map(doc => {
+          const data = doc.data() as BalanceLedgerEntry;
+          return {
+            ...data,
+            id: doc.id
+          };
+        })
       )
     );
   }
@@ -238,7 +253,11 @@ export class BalanceLedgerService {
       map(snapshot => {
         if (snapshot.empty) return null;
         const doc = snapshot.docs[0];
-        return { id: doc.id, ...(doc.data() as BalanceLedgerEntry) };
+        const data = doc.data() as BalanceLedgerEntry;
+        return {
+          ...data,
+          id: doc.id
+        };
       })
     );
   }
