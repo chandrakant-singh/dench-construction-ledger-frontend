@@ -5,10 +5,12 @@ import { UserService } from '../../../core/services/user.service';
 import { NAV_ITEMS } from '../../constants/navitems';
 import { Constants } from '../../constants/constants';
 import { Offcanvas } from 'bootstrap';
+import { CommonModule } from '@angular/common';
+import { Roles } from '../../constants/roles';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
 })
@@ -16,8 +18,22 @@ export class MainLayoutComponent {
   navItems: { label: string; path: string; roles: string[] }[] = [];
   private authService = inject(AuthService);
   private userService = inject(UserService);
-  loggedInUserName = JSON.parse(localStorage.getItem(Constants.USER) as string).name
+  loggedInUserName = JSON.parse(localStorage.getItem(Constants.USER) as string).name;
+  userRole = JSON.parse(localStorage.getItem(Constants.USER) as string).role;
   private router = inject(Router);
+  
+  get roleDisplayName(): string {
+    switch (this.userRole) {
+      case Roles.ADMIN:
+        return 'Admin';
+      case Roles.SUPERVISOR:
+        return 'Supervisor';
+      case Roles.SUPER_ADMIN:
+        return 'Super Admin';
+      default:
+        return 'User';
+    }
+  }
   
   constructor() {
     this.handleNavItem();

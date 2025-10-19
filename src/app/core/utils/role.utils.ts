@@ -274,11 +274,11 @@ export class RoleUtils {
     const role = this.getCurrentUserRole();
     switch (role) {
       case Roles.ADMIN:
-        return 'Administrator';
+        return 'Admin';
       case Roles.SUPERVISOR:
         return 'Supervisor';
       case Roles.SUPER_ADMIN:
-        return 'Super Administrator';
+        return 'Super Admin';
       default:
         return 'User';
     }

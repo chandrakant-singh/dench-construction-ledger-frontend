@@ -9,6 +9,11 @@
     </div>
     <div class="d-flex align-items-center ms-auto">
       <span class="me-3 text-white">{{loggedInUserName}}</span>
+      <span class="badge me-3" [ngClass]="{
+        'bg-success': userRole === 'supervisor',
+        'bg-primary': userRole === 'admin',
+        'bg-danger': userRole === 'super_admin'
+      }">{{roleDisplayName}}</span>
       <button class="btn btn-outline-light btn-sm" (click)="logOut()">Logout</button>
     </div>
   </div>
