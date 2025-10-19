@@ -5,25 +5,20 @@ export const NAV_ITEMS = [
     path: '/super-admin/dashboard',
     roles: ['super_admin']
   },
-  {
-    label: 'Manage Admins',
-    path: '/super-admin/manage-admins',
-    roles: ['super_admin']
-  },
-  {
-    label: 'System Settings',
-    path: '/super-admin/settings',
-    roles: ['super_admin']
-  },
-  {
-    label: 'Reports & Analytics',
-    path: '/super-admin/reports',
-    roles: ['super_admin']
-  },
+  // {
+  //   label: 'System Settings',
+  //   path: '/super-admin/settings',
+  //   roles: ['super_admin']
+  // },
+  // {
+  //   label: 'Reports & Analytics',
+  //   path: '/super-admin/reports',
+  //   roles: ['super_admin']
+  // },
 
   // Admin (accessible by both admin and super admin)
   {
-    label: 'Dashboard',
+    label: 'Expenditure Ledger',
     path: '/admin/dashboard',
     roles: ['admin', 'super_admin']
   },
@@ -33,25 +28,40 @@ export const NAV_ITEMS = [
   //   roles: ['admin', 'super_admin']
   // },
   {
-    label: 'List Stock Ledger',
+    label: 'Stock Ledger',
     path: '/admin/list-stock-ledger',
     roles: ['admin', 'super_admin']
   },
   {
-    label: 'List Balance Ledger',
+    label: 'Balance Ledger',
     path: '/admin/list-balance-ledger',
     roles: ['admin', 'super_admin']
   },
   {
-    label: 'Create Supervisor',
-    path: '/admin/create-supervisor',
-    roles: ['admin', 'super_admin']
+    label: 'Manage Admins',
+    path: '/super-admin/manage-admins',
+    roles: ['super_admin']
   },
   {
-    label: 'List Supervisor',
-    path: '/admin/list-supervisor',
+    label: 'List Admins',
+    path: '/super-admin/list-admin',
+    roles: ['super_admin']
+  },
+  {
+    label: 'List Supervisors',
+    path: '/super-admin/list-supervisor',
     roles: ['admin', 'super_admin']
   },
+  // {
+  //   label: 'Create Supervisor',
+  //   path: '/admin/create-supervisor',
+  //   roles: ['admin', 'super_admin']
+  // },
+  // {
+  //   label: 'List Supervisor',
+  //   path: '/admin/list-supervisor',
+  //   roles: ['admin', 'super_admin']
+  // },
 
   // Supervisor
   {

@@ -8,6 +8,10 @@ export enum EndPoints {
   SUPER_ADMIN_MANAGE_ADMINS = 'super-admin/manage-admins',
   SUPER_ADMIN_SETTINGS = 'super-admin/settings',
   SUPER_ADMIN_REPORTS = 'super-admin/reports',
+  SUPER_ADMIN_CREATE_ADMIN = 'super-admin/create-admin',
+  SUPER_ADMIN_CREATE_SUPERVISOR = 'super-admin/create-supervisor',
+  SUPER_ADMIN_LIST_ADMIN = 'super-admin/list-admin',
+  SUPER_ADMIN_LIST_SUPERVISOR = 'super-admin/list-supervisor',
 
   // Admin
   ADMIN_DASHBOARD = 'admin/dashboard',

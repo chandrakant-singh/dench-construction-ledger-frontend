@@ -1,0 +1,25 @@
+<!-- create-admin.component.html -->
+<div class="container">
+  <h3>Create Admin</h3>
+  <form [formGroup]="adminForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label>Name</label>
+      <input type="text" class="form-control" formControlName="name" required />
+    </div>
+    <div class="mb-3">
+      <label>Email</label>
+      <input type="email" class="form-control" formControlName="email" required />
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" class="form-control" formControlName="password" required />
+    </div>
+    <app-loading-button
+      [btnClass]="'btn btn-primary'"
+      [isLoading]="isLoading"
+      [btnDisable]="adminForm.invalid"
+      [label]="'Create Admin'"
+      [type]="'submit'">
+    </app-loading-button>
+  </form>
+</div>

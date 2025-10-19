@@ -5,19 +5,19 @@
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
         <div class="d-flex align-items-center">
           <h4 class="mb-0 fw-bold">
-            <i class="bi bi-people-fill text-primary me-2"></i>
-            <span class="d-none d-sm-inline">Supervisor Management</span>
-            <span class="d-sm-none">Supervisors</span>
+            <i class="bi bi-shield-check text-primary me-2"></i>
+            <span class="d-none d-sm-inline">Admin Management</span>
+            <span class="d-sm-none">Admins</span>
           </h4>
           <span class="badge bg-primary ms-2">
-            {{ filteredSupervisors.length }} supervisor{{ filteredSupervisors.length !== 1 ? 's' : '' }}
+            {{ filteredAdmins.length }} admin{{ filteredAdmins.length !== 1 ? 's' : '' }}
           </span>
         </div>
         <button type="button" 
                 class="btn btn-primary d-flex align-items-center gap-2"
-                routerLink="/admin/create-supervisor">
+                routerLink="/super-admin/create-admin">
           <i class="bi bi-plus-circle-fill"></i>
-          <span>Create Supervisor</span>
+          <span>Create Admin</span>
         </button>
       </div>
     </div>
@@ -101,82 +101,74 @@
               </thead>
               <tbody>
                 <!-- No Results Message -->
-                <tr *ngIf="filteredSupervisors.length === 0" class="text-center">
+                <tr *ngIf="filteredAdmins.length === 0" class="text-center">
                   <td colspan="4" class="py-4 text-muted">
                     <div class="py-3">
-                      <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
-                      <h6 class="mt-2 mb-1 fw-semibold">No supervisors found</h6>
+                      <i class="bi bi-shield-exclamation fs-1 text-muted opacity-50"></i>
+                      <h6 class="mt-2 mb-1 fw-semibold">No admins found</h6>
                       <small class="text-muted">
                         <span *ngIf="searchTerm || statusFilter">Try adjusting your filters</span>
-                        <span *ngIf="!searchTerm && !statusFilter">No supervisors have been created yet</span>
+                        <span *ngIf="!searchTerm && !statusFilter">No admins have been created yet</span>
                       </small>
                     </div>
                   </td>
                 </tr>
                 
-                <!-- Supervisor Rows -->
-                <tr *ngFor="let supervisor of filteredSupervisors; trackBy: trackByFn" 
+                <!-- Admin Rows -->
+                <tr *ngFor="let admin of filteredAdmins; trackBy: trackByFn" 
                     class="align-middle"
-                    [class.table-warning]="supervisor.isDisabled"
-                    [class.opacity-75]="supervisor.isDisabled">
+                    [class.table-warning]="admin.isDisabled"
+                    [class.opacity-75]="admin.isDisabled">
                   <td class="py-2 px-3">
                     <div class="d-flex align-items-center">
                       <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" 
                            style="width: 32px; height: 32px; font-size: 14px;">
-                        <i class="bi bi-person-fill"></i>
+                        <i class="bi bi-shield-check"></i>
                       </div>
                       <div class="flex-grow-1 min-w-0">
                         <!-- Normal View -->
-                        <div *ngIf="editingSupervisor?.uid !== supervisor.uid">
-                          <div class="fw-semibold text-truncate">{{ supervisor.name }}</div>
+                        <div *ngIf="editingAdmin?.uid !== admin.uid">
+                          <div class="fw-semibold text-truncate">{{ admin.name }}</div>
                           <small class="text-muted d-sm-none text-truncate d-block">
-                            <i class="bi bi-envelope me-1"></i>{{ supervisor.email }}
+                            <i class="bi bi-envelope me-1"></i>{{ admin.email }}
                           </small>
                         </div>
                         <!-- Edit Mode -->
-                        <input *ngIf="editingSupervisor?.uid === supervisor.uid" 
+                        <input *ngIf="editingAdmin?.uid === admin.uid" 
                                type="text" 
                                class="form-control form-control-sm" 
-                               [(ngModel)]="editingSupervisor!.name">
+                               [(ngModel)]="editingAdmin!.name">
                       </div>
                     </div>
                   </td>
                   
                   <!-- Email Column - Hidden on mobile -->
                   <td class="py-2 px-3 d-none d-sm-table-cell">
-                    <span *ngIf="editingSupervisor?.uid !== supervisor.uid" class="text-muted text-truncate">
-                      <i class="bi bi-envelope me-1"></i>{{ supervisor.email }}
+                    <span *ngIf="editingAdmin?.uid !== admin.uid" class="text-muted text-truncate">
+                      <i class="bi bi-envelope me-1"></i>{{ admin.email }}
                     </span>
-                    <input *ngIf="editingSupervisor?.uid === supervisor.uid" 
+                    <input *ngIf="editingAdmin?.uid === admin.uid" 
                            type="email" 
                            class="form-control form-control-sm" 
-                           [(ngModel)]="editingSupervisor!.email">
+                           [(ngModel)]="editingAdmin!.email">
                   </td>
                   
                   <td class="py-2 px-3 text-center">
                     <span class="badge" 
-                          [ngClass]="supervisor.isDisabled ? 'bg-warning text-dark' : 'bg-success'">
-                      <i class="bi me-1 d-none d-md-inline" [ngClass]="supervisor.isDisabled ? 'bi-x-circle' : 'bi-check-circle'"></i>
-                      <span class="d-none d-sm-inline">{{ supervisor.isDisabled ? 'Disabled' : 'Active' }}</span>
-                      <span class="d-sm-none">{{ supervisor.isDisabled ? 'Off' : 'On' }}</span>
+                          [ngClass]="admin.isDisabled ? 'bg-warning text-dark' : 'bg-success'">
+                      <i class="bi me-1 d-none d-md-inline" [ngClass]="admin.isDisabled ? 'bi-x-circle' : 'bi-check-circle'"></i>
+                      <span class="d-none d-sm-inline">{{ admin.isDisabled ? 'Disabled' : 'Active' }}</span>
+                      <span class="d-sm-none">{{ admin.isDisabled ? 'Off' : 'On' }}</span>
                     </span>
                   </td>
                   
                   <td class="py-2 px-2 text-center">
                     <!-- Normal Action Buttons -->
-                    <div class="btn-group btn-group-sm" role="group" *ngIf="editingSupervisor?.uid !== supervisor.uid">
-                      <!-- View Details Button -->
-                      <button type="button" 
-                              class="btn btn-outline-success border-0" 
-                              (click)="showSupervisorDetails(supervisor)"
-                              title="View Ledger Details">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      
+                    <div class="btn-group btn-group-sm" role="group" *ngIf="editingAdmin?.uid !== admin.uid">
                       <!-- Edit Button -->
                       <button type="button" 
                               class="btn btn-outline-primary border-0" 
-                              (click)="editSupervisor(supervisor)"
+                              (click)="editAdmin(admin)"
                               title="Edit">
                         <i class="bi bi-pencil"></i>
                       </button>
@@ -184,23 +176,23 @@
                       <!-- Disable/Enable Button -->
                       <button type="button" 
                               class="btn border-0" 
-                              [ngClass]="supervisor.isDisabled ? 'btn-outline-success' : 'btn-outline-warning'"
-                              (click)="toggleSupervisorStatus(supervisor)"
-                              [title]="supervisor.isDisabled ? 'Enable' : 'Disable'">
-                        <i class="bi" [ngClass]="supervisor.isDisabled ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                              [ngClass]="admin.isDisabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                              (click)="toggleAdminStatus(admin)"
+                              [title]="admin.isDisabled ? 'Enable' : 'Disable'">
+                        <i class="bi" [ngClass]="admin.isDisabled ? 'bi-check-circle' : 'bi-x-circle'"></i>
                       </button>
                       
                       <!-- Password View Button -->
                       <button type="button" 
                               class="btn btn-outline-info border-0" 
-                              (click)="showPassword(supervisor)"
+                              (click)="showPassword(admin)"
                               title="Password">
                         <i class="bi bi-key"></i>
                       </button>
                     </div>
                     
                     <!-- Edit Mode Buttons -->
-                    <div class="btn-group btn-group-sm" role="group" *ngIf="editingSupervisor?.uid === supervisor.uid">
+                    <div class="btn-group btn-group-sm" role="group" *ngIf="editingAdmin?.uid === admin.uid">
                       <button type="button" 
                               class="btn btn-success border-0" 
                               (click)="saveEdit()"
@@ -230,16 +222,18 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Supervisor Password</h5>
+        <h5 class="modal-title">
+          <i class="bi bi-shield-check me-2"></i>Admin Password
+        </h5>
         <button type="button" class="btn-close" (click)="closePasswordModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row mb-3">
           <div class="col-6">
-            <strong>Supervisor:</strong> {{ selectedSupervisor?.name }}
+            <strong>Admin:</strong> {{ selectedAdmin?.name }}
           </div>
           <div class="col-6">
-            <strong>Email:</strong> {{ selectedSupervisor?.email }}
+            <strong>Email:</strong> {{ selectedAdmin?.email }}
           </div>
         </div>
         
@@ -252,12 +246,12 @@
         </div>
         
         <!-- Password Display -->
-        <div *ngIf="!isLoadingPassword && supervisorPassword" class="mb-3">
+        <div *ngIf="!isLoadingPassword && adminPassword" class="mb-3">
           <label class="form-label"><strong>Password:</strong></label>
           <div class="input-group">
             <input [type]="showPasswordText ? 'text' : 'password'" 
                    class="form-control" 
-                   [value]="supervisorPassword" 
+                   [value]="adminPassword" 
                    readonly>
             <button type="button" 
                     class="btn btn-outline-secondary" 
@@ -275,14 +269,6 @@
             </button>
           </div>
         </div>
-        
-        <!-- No Password Found - Show Reset Option -->
-        <!-- <div *ngIf="!isLoadingPassword && !supervisorPassword" class="mb-3">
-          <div class="alert alert-light border">
-            <i class="bi bi-key"></i>
-            <strong>No password set yet.</strong> Click "Reset Password" below to set a new password for this supervisor.
-          </div>
-        </div> -->
         
         <!-- Password Reset Form -->
         <div *ngIf="showPasswordResetForm" class="mb-3">
@@ -303,15 +289,20 @@
           </div>
           <small class="text-muted">Password must be at least 6 characters long</small>
         </div>
-        
-        <!-- Security Notice -->
-        <!-- <div class="alert alert-info">
-          <i class="bi bi-shield-check"></i>
-          <strong>Security Notice:</strong> This password is stored in the database and used for supervisor login. The supervisor can use this password to log in to their account.
-        </div> -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closePasswordModal()">Close</button>
+        <button *ngIf="!showPasswordResetForm" type="button" class="btn btn-warning" (click)="resetPassword()">
+          <i class="bi bi-key me-1"></i>Reset Password
+        </button>
+        <button *ngIf="showPasswordResetForm" type="button" class="btn btn-success" (click)="saveNewPassword()" [disabled]="isResettingPassword">
+          <span *ngIf="isResettingPassword" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!isResettingPassword" class="bi bi-check me-1"></i>
+          {{ isResettingPassword ? 'Updating...' : 'Update Password' }}
+        </button>
+        <button *ngIf="showPasswordResetForm" type="button" class="btn btn-secondary" (click)="cancelPasswordReset()" [disabled]="isResettingPassword">
+          Cancel
+        </button>
       </div>
     </div>
   </div>
@@ -319,10 +310,3 @@
 
 <!-- Modal Backdrop -->
 <div class="modal-backdrop fade" [class.show]="showPasswordModal" *ngIf="showPasswordModal"></div>
-
-<!-- Supervisor Details Modal -->
-<app-supervisor-details-modal
-  [supervisor]="selectedSupervisorForDetails"
-  [isVisible]="showSupervisorDetailsModal"
-  (modalClose)="closeSupervisorDetailsModal()">
-</app-supervisor-details-modal>

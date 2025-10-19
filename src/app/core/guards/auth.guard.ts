@@ -21,15 +21,15 @@ export class AuthGuard implements CanActivate {
   private checkToken(): boolean | UrlTree {
     const adminToken = StorageUtils.getAdminToken();
     const supervisorToken = StorageUtils.getSupervisorToken();
+    const superAdminToken = StorageUtils.getSuperAdminToken();
 
-    if (adminToken) {
-      // this.router.navigate(['admin', 'dashboard']);
+    if (superAdminToken) {
+      return true;
+    } else if (adminToken) {
       return true;
     } else if (supervisorToken) {
-      // this.router.navigate(['supervisor', 'dashboard']);
-      return true;;
+      return true;
     } else {
-      // this.router.navigate(['auth', 'login']);
       return false;
     }
   }

@@ -19,6 +19,10 @@ export class StorageUtils {
     return localStorage.getItem(Constants.SUPERVISOR_TOKEN) as string;
   }
 
+  static getSuperAdminToken() {
+    return localStorage.getItem(Constants.SUPER_ADMIN_TOKEN) as string;
+  }
+
   static getUserName() {
     return JSON.parse(localStorage.getItem(Constants.USER) as string).name;
   }

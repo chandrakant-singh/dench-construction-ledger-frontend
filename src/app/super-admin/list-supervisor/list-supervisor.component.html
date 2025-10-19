@@ -15,7 +15,7 @@
         </div>
         <button type="button" 
                 class="btn btn-primary d-flex align-items-center gap-2"
-                routerLink="/admin/create-supervisor">
+                routerLink="/super-admin/create-supervisor">
           <i class="bi bi-plus-circle-fill"></i>
           <span>Create Supervisor</span>
         </button>
@@ -230,7 +230,9 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Supervisor Password</h5>
+        <h5 class="modal-title">
+          <i class="bi bi-person-badge me-2"></i>Supervisor Password
+        </h5>
         <button type="button" class="btn-close" (click)="closePasswordModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -276,14 +278,6 @@
           </div>
         </div>
         
-        <!-- No Password Found - Show Reset Option -->
-        <!-- <div *ngIf="!isLoadingPassword && !supervisorPassword" class="mb-3">
-          <div class="alert alert-light border">
-            <i class="bi bi-key"></i>
-            <strong>No password set yet.</strong> Click "Reset Password" below to set a new password for this supervisor.
-          </div>
-        </div> -->
-        
         <!-- Password Reset Form -->
         <div *ngIf="showPasswordResetForm" class="mb-3">
           <label class="form-label"><strong>Set New Password:</strong></label>
@@ -303,15 +297,20 @@
           </div>
           <small class="text-muted">Password must be at least 6 characters long</small>
         </div>
-        
-        <!-- Security Notice -->
-        <!-- <div class="alert alert-info">
-          <i class="bi bi-shield-check"></i>
-          <strong>Security Notice:</strong> This password is stored in the database and used for supervisor login. The supervisor can use this password to log in to their account.
-        </div> -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closePasswordModal()">Close</button>
+        <button *ngIf="!showPasswordResetForm" type="button" class="btn btn-warning" (click)="resetPassword()">
+          <i class="bi bi-key me-1"></i>Reset Password
+        </button>
+        <button *ngIf="showPasswordResetForm" type="button" class="btn btn-success" (click)="saveNewPassword()" [disabled]="isResettingPassword">
+          <span *ngIf="isResettingPassword" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!isResettingPassword" class="bi bi-check me-1"></i>
+          {{ isResettingPassword ? 'Updating...' : 'Update Password' }}
+        </button>
+        <button *ngIf="showPasswordResetForm" type="button" class="btn btn-secondary" (click)="cancelPasswordReset()" [disabled]="isResettingPassword">
+          Cancel
+        </button>
       </div>
     </div>
   </div>

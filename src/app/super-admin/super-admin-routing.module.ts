@@ -31,6 +31,22 @@ const routes: Routes = [
       {
         path: 'reports',
         component: ReportsAnalyticsComponent
+      },
+      {
+        path: 'create-admin',
+        loadComponent: () => import('./create-admin/create-admin.component').then((m) => m.CreateAdminComponent)
+      },
+      {
+        path: 'create-supervisor',
+        loadComponent: () => import('./create-supervisor/create-supervisor.component').then((m) => m.SuperAdminCreateSupervisorComponent)
+      },
+      {
+        path: 'list-admin',
+        loadComponent: () => import('./list-admin/list-admin.component').then((m) => m.ListAdminComponent)
+      },
+      {
+        path: 'list-supervisor',
+        loadComponent: () => import('./list-supervisor/list-supervisor.component').then((m) => m.SuperAdminListSupervisorComponent)
       }
     ]
   }

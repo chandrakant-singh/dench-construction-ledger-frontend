@@ -1,20 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-
-import { SupervisorService } from '../../core/services/supervisor.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+
+import { SupervisorService } from '../../core/services/supervisor.service';
 import { AppUser } from '../../core/models/user.model';
 import { ToastService } from '../../core/services/toaster.service';
 import { SupervisorDetailsModalComponent } from '../../shared/components/supervisor-details-modal/supervisor-details-modal.component';
 
 @Component({
-  selector: 'app-list-supervisor',
+  selector: 'app-super-admin-list-supervisor',
   imports: [CommonModule, FormsModule, RouterModule, SupervisorDetailsModalComponent],
   templateUrl: './list-supervisor.component.html',
   styleUrl: './list-supervisor.component.scss'
 })
-export class ListSupervisorComponent implements OnInit {
+export class SuperAdminListSupervisorComponent implements OnInit {
   supervisors: AppUser[] = [];
   filteredSupervisors: AppUser[] = [];
   editingSupervisor: AppUser | null = null;
@@ -38,28 +38,26 @@ export class ListSupervisorComponent implements OnInit {
   constructor(
     private supervisorService: SupervisorService,
     private toastService: ToastService
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
     this.getSupervisors();
   }
 
   private getSupervisors(): void {
     this.supervisorService.getSupervisors()
-    .subscribe({
-      next: (supervisors) => {
-        console.log(supervisors);
-        this.supervisors = supervisors;
-        this.filteredSupervisors = supervisors;
-        this.applyFilters();
-      },
-      error: (error) => {
-        console.error('Error fetching supervisors:', error);
-      }
-    })
+      .subscribe({
+        next: (supervisors) => {
+          console.log('Supervisors loaded:', supervisors);
+          this.supervisors = supervisors;
+          this.filteredSupervisors = supervisors;
+          this.applyFilters();
+        },
+        error: (error) => {
+          console.error('Error fetching supervisors:', error);
+          this.toastService.show('Error loading supervisors', 'danger');
+        }
+      });
   }
 
   deleteSupervisor(supervisor: AppUser): void {

@@ -42,7 +42,10 @@ export class AuthService {
       localStorage.setItem(Constants.USER_ID, uid);
       console.log("========== USER DATA ==========", userData);
       
-      if (userData.role === Roles.ADMIN) {
+      if (userData.role === Roles.SUPER_ADMIN) {
+        localStorage.setItem(Constants.SUPER_ADMIN_TOKEN, credential.user.accessToken);
+        this.router.navigate([EndPoints.SUPER_ADMIN_DASHBOARD]);
+      } else if (userData.role === Roles.ADMIN) {
         localStorage.setItem(Constants.ADMIN_TOKEN, credential.user.accessToken);
         this.router.navigate([EndPoints.ADMIN_DASHBOARD]);
       } else if (userData.role === Roles.SUPERVISOR) {
@@ -66,6 +69,26 @@ export class AuthService {
       email,
       password,
       role: 'supervisor',
+      isActive: true,
+      isDisabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }
+
+  // ➕ Create Admin (SuperAdmin only)
+  async createAdmin(name: string, email: string, password: string): Promise<void> {
+    const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // Store admin details including password in Firestore
+    const adminRef = doc(this.firestore, 'users', uid);
+    await setDoc(adminRef, {
+      uid,
+      name,
+      email,
+      password,
+      role: 'admin',
       isActive: true,
       isDisabled: false,
       createdAt: new Date(),

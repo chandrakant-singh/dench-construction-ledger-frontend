@@ -1,0 +1,223 @@
+<!-- Supervisor Details Modal -->
+<div class="modal fade" [class.show]="isVisible" [style.display]="isVisible ? 'block' : 'none'" tabindex="-1" *ngIf="isVisible && supervisor">
+  <div class="modal-dialog modal-fullscreen-mobile">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary text-white">
+        <div class="d-flex align-items-center flex-grow-1">
+          <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-2 me-md-3" 
+               style="width: 35px; height: 35px; min-width: 35px;">
+            <i class="bi bi-person-fill" style="font-size: 16px;"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <h5 class="modal-title mb-0 text-truncate">{{ supervisor.name }}</h5>
+            <small class="opacity-75 text-truncate d-block">{{ supervisor.email }}</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white flex-shrink-0" (click)="closeModal()" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-0">
+        <!-- Final Balance Display -->
+        <div class="bg-light border-bottom p-3">
+          <div class="text-center">
+            <div class="mb-1">
+              <small class="text-muted text-uppercase fw-semibold">Current Balance</small>
+            </div>
+            <div class="fs-3 fw-bold" [ngClass]="getBalanceColorClass()">
+              {{ formatCurrency(getCurrentFinalBalance()) }}
+            </div>
+            <div class="mt-1">
+              <small class="text-muted">{{ activeTab | titlecase }} Ledger</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-0 bg-light border-bottom">
+          <div class="col-4">
+            <div class="p-2 p-md-3 text-center">
+              <div class="text-primary fs-5 fs-md-4 fw-bold">{{ supervisorStats.expenditureEntries }}</div>
+              <small class="text-muted d-none d-md-block">Expenditure</small>
+              <small class="text-muted d-md-none">Exp</small>
+            </div>
+          </div>
+          <div class="col-4 border-start">
+            <div class="p-2 p-md-3 text-center">
+              <div class="text-success fs-5 fs-md-4 fw-bold">{{ supervisorStats.stockEntries }}</div>
+              <small class="text-muted d-none d-md-block">Stock</small>
+              <small class="text-muted d-md-none">Stock</small>
+            </div>
+          </div>
+          <div class="col-4 border-start">
+            <div class="p-2 p-md-3 text-center">
+              <div class="text-info fs-5 fs-md-4 fw-bold">{{ supervisorStats.balanceEntries }}</div>
+              <small class="text-muted d-none d-md-block">Balance</small>
+              <small class="text-muted d-md-none">Bal</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="border-bottom">
+          <ul class="nav nav-tabs nav-fill" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link" 
+                      [class.active]="activeTab === 'expenditure'"
+                      (click)="onTabChange('expenditure')"
+                      type="button">
+                <i class="bi bi-cash-stack me-1 me-md-2"></i>
+                <span class="d-none d-md-inline">Expenditure</span>
+                <span class="d-md-none">Exp</span>
+                <span class="badge bg-primary ms-1 ms-md-2">{{ filteredExpenditureData.length }}</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" 
+                      [class.active]="activeTab === 'stock'"
+                      (click)="onTabChange('stock')"
+                      type="button">
+                <i class="bi bi-box-seam me-1 me-md-2"></i>
+                <span class="d-none d-md-inline">Stock</span>
+                <span class="d-md-none">Stock</span>
+                <span class="badge bg-success ms-1 ms-md-2">{{ filteredStockData.length }}</span>
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" 
+                      [class.active]="activeTab === 'balance'"
+                      (click)="onTabChange('balance')"
+                      type="button">
+                <i class="bi bi-wallet2 me-1 me-md-2"></i>
+                <span class="d-none d-md-inline">Balance</span>
+                <span class="d-md-none">Bal</span>
+                <span class="badge bg-info ms-1 ms-md-2">{{ filteredBalanceData.length }}</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="p-2 p-md-3 border-bottom bg-light">
+          <div class="row align-items-center">
+            <div class="col-12 col-md-8">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="Search entries..."
+                       [(ngModel)]="searchTerm"
+                       (input)="onSearchChange()">
+              </div>
+            </div>
+            <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
+              <small class="text-muted">
+                {{ getCurrentData().length }} of {{ 
+                  activeTab === 'expenditure' ? expenditureData.length : 
+                  activeTab === 'stock' ? stockData.length : balanceData.length 
+                }} entries
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading supervisor data...</p>
+          </div>
+
+          <!-- Data Table -->
+          <div *ngIf="!isLoading" class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+            <table class="table table-hover table-sm mb-0">
+              <thead class="table-dark sticky-top">
+                <tr>
+                  <th *ngFor="let column of getCurrentColumns()" 
+                      class="border-0 py-1 py-md-2 px-1 px-md-3"
+                      [style.min-width]="column.prop === 'description' ? '150px' : '80px'"
+                      [style.font-size]="'0.75rem'">
+                    <span class="fw-semibold">{{ column.name }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- No Data Message -->
+                <tr *ngIf="getCurrentData().length === 0" class="text-center">
+                  <td [attr.colspan]="getCurrentColumns().length" class="py-4 text-muted">
+                    <div class="py-3">
+                      <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
+                      <h6 class="mt-2 mb-1 fw-semibold">No {{ activeTab }} entries found</h6>
+                      <small class="text-muted">
+                        <span *ngIf="searchTerm">Try adjusting your search</span>
+                        <span *ngIf="!searchTerm">No {{ activeTab }} entries have been created yet</span>
+                      </small>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Data Rows -->
+                <tr *ngFor="let entry of getCurrentData()" class="align-middle">
+                  <td *ngFor="let column of getCurrentColumns()" class="py-1 py-md-2 px-1 px-md-3" style="font-size: 0.8rem;">
+                    <span *ngIf="column.prop === 'date'" class="text-muted">
+                      {{ entry[column.prop] | date:'dd/MM/yy' }}
+                    </span>
+                    <span *ngIf="column.prop === 'debit' || column.prop === 'credit' || column.prop === 'amount'" 
+                          class="fw-semibold"
+                          [class.text-danger]="column.prop === 'debit'"
+                          [class.text-success]="column.prop === 'credit' || column.prop === 'amount'">
+                      {{ formatCurrency(entry[column.prop] || 0) }}
+                    </span>
+                    <span *ngIf="column.prop === 'stockIn' || column.prop === 'stockOut' || column.prop === 'quantity' || column.prop === 'rate'" 
+                          class="fw-semibold"
+                          [class.text-success]="column.prop === 'stockIn'"
+                          [class.text-warning]="column.prop === 'stockOut'">
+                      {{ formatNumber(entry[column.prop] || 0) }}
+                    </span>
+                    <span *ngIf="column.prop === 'status'" 
+                          class="badge badge-sm"
+                          [ngClass]="entry[column.prop] === 'active' ? 'bg-success' : 'bg-secondary'">
+                      {{ entry[column.prop] || 'N/A' }}
+                    </span>
+                    <span *ngIf="!['date', 'debit', 'credit', 'amount', 'stockIn', 'stockOut', 'quantity', 'rate', 'status'].includes(column.prop)" 
+                          class="text-truncate d-block" 
+                          [title]="entry[column.prop]"
+                          style="max-width: 120px;">
+                      {{ entry[column.prop] || 'N/A' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-light p-2 p-md-3">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <div class="text-muted small d-none d-md-block">
+            <i class="bi bi-info-circle me-1"></i>
+            Showing {{ activeTab }} ledger entries for {{ supervisor.name }}
+          </div>
+          <div class="text-muted small d-md-none text-center flex-grow-1">
+            {{ activeTab | titlecase }} Ledger
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeModal()">
+            <i class="bi bi-x-circle me-1"></i>
+            <span class="d-none d-md-inline">Close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade" [class.show]="isVisible" *ngIf="isVisible"></div>
