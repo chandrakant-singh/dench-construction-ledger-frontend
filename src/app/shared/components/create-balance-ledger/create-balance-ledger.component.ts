@@ -9,8 +9,10 @@ import { UserService } from '../../../core/services/user.service';
 import { DateUtils } from '../../../core/utils/date.utils';
 import { NumberUtils } from '../../../core/utils/number.utils';
 import { balanceLedgerFormValidation } from '../../../core/utils/form.utils';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { LoadingButtonComponent } from '../loading-button/loading-button.component';
 import { DialogComponent } from "../dialog/dialog.component";
+import { UnitSelectorComponent } from '../unit-selector/unit-selector.component';
 import { BalanceLedgerItemService } from '../../../core/services/balance-ledger-item.service';
 import { BalanceLedgerEntry, BalanceLedgerItem } from '../../../core/models/balance-ledger';
 import { BalanceLedgerService } from '../../../core/services/balance-ledger.service';
@@ -27,7 +29,7 @@ declare var bootstrap: any;
 
 @Component({
   selector: 'app-create-balance-ledger',
-  imports: [CommonModule, ReactiveFormsModule, LoadingButtonComponent, DialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, LoadingButtonComponent, DialogComponent, UnitSelectorComponent],
   providers: [
     HierarchyService,
     BalanceLedgerItemService,
@@ -101,31 +103,8 @@ export class CreateBalanceLedgerComponent {
     return false;
   }
 
-  // Unit options for dropdown
-  unitOptions = [
-    { value: '', label: 'Select Unit' },
-    { value: 'per kg', label: 'Per Kilogram' },
-    { value: 'per gram', label: 'Per Gram' },
-    { value: 'per ton', label: 'Per Ton' },
-    { value: 'per piece', label: 'Per Piece' },
-    { value: 'per item', label: 'Per Item' },
-    { value: 'per hour', label: 'Per Hour' },
-    { value: 'per day', label: 'Per Day' },
-    { value: 'per month', label: 'Per Month' },
-    { value: 'per meter', label: 'Per Meter' },
-    { value: 'per foot', label: 'Per Foot' },
-    { value: 'per inch', label: 'Per Inch' },
-    { value: 'per liter', label: 'Per Liter' },
-    { value: 'per gallon', label: 'Per Gallon' },
-    { value: 'per square meter', label: 'Per Square Meter' },
-    { value: 'per square foot', label: 'Per Square Foot' },
-    { value: 'per cubic meter', label: 'Per Cubic Meter' },
-    { value: 'per cubic foot', label: 'Per Cubic Foot' },
-    { value: 'per box', label: 'Per Box' },
-    { value: 'per bag', label: 'Per Bag' },
-    { value: 'per dozen', label: 'Per Dozen' },
-    { value: 'per unit', label: 'Per Unit' }
-  ];
+  // Unit options for the unit selector (simplified for mobile-friendly segmented buttons)
+  unitOptions = ['kg', 'g', 'l', 'ml', 'pcs', 'box', 'bag', 'm', 'ft', 'sqft'];
 
   constructor(
     private readonly fb: FormBuilder,
@@ -153,6 +132,9 @@ export class CreateBalanceLedgerComponent {
       this.initializeFormData();
       this.getItems();
       this.loadHierarchyData();
+      
+      // Initialize validators based on current form state
+      this.updateFieldValidators(false); // Initially no credit, so quantity/rate/unit are required
     });
   }
 
@@ -549,6 +531,10 @@ export class CreateBalanceLedgerComponent {
       if (this.existingLedger.subCategory) {
         this.balanceLedgerForm.get('subCategory')?.enable();
       }
+      
+      // Update validators based on existing credit value
+      const existingCredit = this.existingLedger.credit || 0;
+      this.updateFieldValidators(existingCredit > 0);
     } else {
       this.balanceLedgerForm.get('rate')?.enable();
       this.balanceLedgerForm.get('quantity')?.enable();
@@ -559,6 +545,9 @@ export class CreateBalanceLedgerComponent {
       this.balanceLedgerForm.get('party')?.enable();
       this.balanceLedgerForm.get('mainCategory')?.disable();
       this.balanceLedgerForm.get('subCategory')?.disable();
+      
+      // Initialize validators for new entries (no credit initially)
+      this.updateFieldValidators(false);
     }
 
     // Handle status field based on role and mode
@@ -621,6 +610,47 @@ export class CreateBalanceLedgerComponent {
     console.log('Sub Category:', selectedValue);
   }
 
+  onCreditChange(event: Event) {
+    const creditValue = (event.target as HTMLInputElement).value;
+    const creditAmount = NumberUtils.sanitizeToInteger(creditValue);
+    
+    // Update validation based on credit value
+    this.updateFieldValidators(creditAmount > 0);
+    
+    // Calculate balance when credit changes
+    this.calculateBalance();
+    
+    // Trigger form validation update
+    this.balanceLedgerForm.updateValueAndValidity();
+  }
+
+  private updateFieldValidators(hasCredit: boolean) {
+    const quantityControl = this.balanceLedgerForm.get('quantity');
+    const rateControl = this.balanceLedgerForm.get('rate');
+    const unitControl = this.balanceLedgerForm.get('unit');
+
+    console.log('Updating field validators. Has credit:', hasCredit);
+
+    if (hasCredit) {
+      // When credit is present, make quantity, rate and unit optional
+      quantityControl?.clearValidators();
+      rateControl?.clearValidators();
+      unitControl?.clearValidators();
+      console.log('Cleared validators - fields are now optional');
+    } else {
+      // When no credit, make quantity, rate and unit required
+      quantityControl?.setValidators([Validators.required]);
+      rateControl?.setValidators([Validators.required]);
+      unitControl?.setValidators([Validators.required]);
+      console.log('Set required validators - fields are now required');
+    }
+
+    // Update validation status
+    quantityControl?.updateValueAndValidity();
+    rateControl?.updateValueAndValidity();
+    unitControl?.updateValueAndValidity();
+  }
+
   calculateBalance() {
     const amount = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('amount')?.value);
     const credit = NumberUtils.sanitizeToInteger(this.balanceLedgerForm.get('credit')?.value);
@@ -664,12 +694,12 @@ export class CreateBalanceLedgerComponent {
   private initializeForm() {
     this.balanceLedgerForm = this.fb.group({
       party: [{ value: null, disabled: true }, Validators.required],
-      mainCategory: [{ value: null, disabled: true }, Validators.required],
-      subCategory: [{ value: null, disabled: true }, Validators.required],
+      mainCategory: [{ value: null, disabled: true }], // Made optional
+      subCategory: [{ value: null, disabled: true }], // Made optional
       itemName: [''],
       quantity: [''],
       rate: [''],
-      unit: [''],
+      unit: ['pcs'], // Will be validated conditionally
       amount: [{ value: 0, disabled: true }],
       credit: [''],
       balance: [{ value: 0, disabled: true }],
@@ -678,7 +708,7 @@ export class CreateBalanceLedgerComponent {
       status: [{ value: 'pending', disabled: true }], // Default status, disabled by default
       approvedBy: [''],
       approvedByName: [''],
-    }, { validators: balanceLedgerFormValidation() });
+    }, { validators: this.balanceLedgerFormValidation() });
   }
 
   private initializeItemForm() {
@@ -722,5 +752,39 @@ export class CreateBalanceLedgerComponent {
     this.initializeMainCategoryForm();
     this.initializePartyForm();
     this.initializeSubCategoryForm();
+    
+    // Initialize validators after form reset
+    setTimeout(() => {
+      this.updateFieldValidators(false); // Initially no credit, so quantity/rate/unit are required
+    }, 0);
+  }
+
+  // Custom validation for conditional requirements
+  private balanceLedgerFormValidation(): ValidatorFn {
+    return (group: AbstractControl): ValidationErrors | null => {
+      const credit = group.get('credit')?.value;
+      const quantity = group.get('quantity')?.value;
+      const rate = group.get('rate')?.value;
+      const unit = group.get('unit')?.value;
+
+      const hasCredit = !!credit && credit > 0;
+      const hasQuantity = !!quantity && quantity > 0;
+      const hasRate = !!rate && rate > 0;
+      const hasUnit = !!unit;
+
+      // If credit is entered, quantity, rate and unit become optional
+      if (hasCredit) {
+        return null; // No validation errors when credit is present
+      }
+
+      // If no credit, then quantity, rate and unit are required
+      if (!hasQuantity || !hasRate || !hasUnit) {
+        return {
+          quantityRateUnitRequired: true
+        };
+      }
+
+      return null;
+    };
   }
 }

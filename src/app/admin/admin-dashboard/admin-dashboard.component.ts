@@ -93,6 +93,7 @@ export class AdminDashboardComponent {
 
   private initializeComponent() {
     this.columns = [
+      { name: 'Date', prop: 'date', width: 90},
       { name: 'Balance', prop: 'balance', width: 80},
       // { name: 'Debit', prop: 'debit', width: 120},
       // { name: 'Credit', prop: 'credit', width: 120},
@@ -101,14 +102,13 @@ export class AdminDashboardComponent {
         cellTemplate: this.creditDebit,
         width: 80
       },
-      // { name: 'Description', prop: 'description'},
       { name: 'Hint By', prop: 'hintBy', width: 120},
       { name: 'Payment Mode', prop: 'paymentMode', width: 120},
       // { name: 'Deposited By', prop: 'depositedByName', width: 120},
       // { name: 'Debited By', prop: 'debitedByName', width: 120},
-      { name: 'Date', prop: 'date', width: 90},
       // { name: 'Approved By', prop: 'approvedBy', width: 120},
       { name: 'Created By', prop: 'createdByName', width: 100},
+      { name: 'Description', prop: 'description'},
       {
         name: 'Status/Approved by',
         prop: 'status',

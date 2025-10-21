@@ -13,6 +13,7 @@ import { NumberUtils } from '../../../core/utils/number.utils';
 import { creditOrDebitRequired } from '../../../core/utils/form.utils';
 import { LoadingButtonComponent } from '../loading-button/loading-button.component';
 import { DialogComponent } from "../dialog/dialog.component";
+import { UnitSelectorComponent } from '../unit-selector/unit-selector.component';
 import { StockLedgerCategoryService } from '../../../core/services/stock-ledger-category.service';
 import { StoreLedgerCategory } from '../../../core/models/stock-ledger-category.model';
 import { HierarchyService } from '../../../core/services/hierarchy.service';
@@ -24,7 +25,7 @@ declare var bootstrap: any;
 
 @Component({
   selector: 'app-create-stock-ledger',
-  imports: [CommonModule, ReactiveFormsModule, LoadingButtonComponent, DialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, LoadingButtonComponent, DialogComponent, UnitSelectorComponent],
   templateUrl: './create-stock-ledger.component.html',
   styleUrl: './create-stock-ledger.component.scss'
 })
@@ -78,6 +79,9 @@ export class CreateStockLedgerComponent {
   get canManageHierarchy(): boolean {
     return this.isAdmin; // Only admins can manage categories, parties, subcategories
   }
+
+  // Unit options for the unit selector
+  unitOptions = ['kg', 'g', 'l', 'ml', 'pcs', 'box', 'bag', 'm', 'ft', 'sqft'];
 
   get canEditEntry(): boolean {
     if (this.isAdmin) return true;
@@ -710,6 +714,7 @@ export class CreateStockLedgerComponent {
       party: [{ value: null, disabled: true }, Validators.required],
       stockIn: [''],
       stockOut: [''],
+      unit: ['pcs'], // Default unit
       balance: [{ value: 0, disabled: true }],
       date: [DateUtils.getTodayDate()],
       description: [''],

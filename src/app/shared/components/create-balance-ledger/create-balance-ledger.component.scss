@@ -1,0 +1,57 @@
+// Unit selector integration with input groups
+.input-group {
+  .unit-selector-compact {
+    flex-shrink: 0;
+    min-width: 80px;
+    
+    // For dropdown variant
+    .form-select {
+      border-left: none;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      height: 100%;
+      min-height: 38px; // Match form-control height
+    }
+    
+    // For segmented button variant (if used)
+    .unit-btn-group {
+      height: 100%;
+      border-radius: 0 0.375rem 0.375rem 0;
+      
+      .unit-btn {
+        border-radius: 0;
+        border-left: none;
+        height: 100%;
+        min-height: 38px; // Match form-control height
+        
+        &:last-child {
+          border-top-right-radius: 0.375rem;
+          border-bottom-right-radius: 0.375rem;
+        }
+      }
+    }
+  }
+}
+
+// Mobile responsiveness for unit selector
+@media (max-width: 576px) {
+  .input-group {
+    .unit-selector-compact {
+      min-width: 70px;
+      
+      // For dropdown variant
+      .form-select {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.4rem;
+      }
+      
+      // For segmented button variant
+      .unit-btn-group {
+        .unit-btn {
+          font-size: 0.65rem;
+          padding: 0.25rem 0.3rem;
+        }
+      }
+    }
+  }
+}

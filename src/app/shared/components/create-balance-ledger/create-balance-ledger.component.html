@@ -28,7 +28,7 @@
 
       <!-- Main Category -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label required">Main Category</label>
+        <label class="form-label">Main Category</label>
         <div class="d-flex mb-2">
           <select class="form-select" formControlName="mainCategory" (change)="onMainCategoryChange($event)">
             <option value="">Select Main Category</option>
@@ -41,15 +41,11 @@
             <i class="bi bi-gear"></i>
           </button>
         </div>
-        <div class="invalid-feedback"
-          *ngIf="balanceLedgerForm.get('mainCategory')?.touched && balanceLedgerForm.get('mainCategory')?.invalid">
-          Main Category is required
-        </div>
       </div>
 
       <!-- Sub Category -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label required">Sub Category</label>
+        <label class="form-label">Sub Category</label>
         <div class="d-flex mb-2">
           <select class="form-select" formControlName="subCategory" (change)="onSubCategoryChange($event)">
             <option value="">Select Sub Category</option>
@@ -62,31 +58,40 @@
             <i class="bi bi-gear"></i>
           </button>
         </div>
-        <div class="invalid-feedback"
-          *ngIf="balanceLedgerForm.get('subCategory')?.touched && balanceLedgerForm.get('subCategory')?.invalid">
-          Sub Category is required
-        </div>
       </div>
 
-      <!-- Quantity -->
+      <!-- Quantity with Unit -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label required">Quantity</label>
-        <input type="number" class="form-control" formControlName="quantity" (input)="calculateAmount()" placeholder="Enter Quantity">
+        <label class="form-label" [class.required]="!balanceLedgerForm.get('credit')?.value || balanceLedgerForm.get('credit')?.value <= 0">Quantity</label>
+        <div class="input-group">
+          <input type="number" class="form-control" formControlName="quantity" (input)="calculateAmount()" placeholder="Enter Quantity">
+          <app-unit-selector 
+            [units]="unitOptions" 
+            [size]="'md'"
+            formControlName="unit"
+            class="unit-selector-compact">
+          </app-unit-selector>
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('quantity')?.touched && balanceLedgerForm.get('quantity')?.invalid">
+          Quantity is required when no credit is entered
+        </div>
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('unit')?.touched && balanceLedgerForm.get('unit')?.invalid">
+          Unit is required when no credit is entered
+        </div>
       </div>
 
       <!-- Rate -->
       <div class="col-lg-4 col-md-6">
-        <label class="form-label required">Rate</label>
+        <label class="form-label" [class.required]="!balanceLedgerForm.get('credit')?.value || balanceLedgerForm.get('credit')?.value <= 0">Rate</label>
         <input type="number" class="form-control" formControlName="rate" (input)="calculateAmount()" placeholder="Enter Rate">
+        <div class="invalid-feedback"
+          *ngIf="balanceLedgerForm.get('rate')?.touched && balanceLedgerForm.get('rate')?.invalid">
+          Rate is required when no credit is entered
+        </div>
       </div>
 
-      <!-- Unit -->
-      <div class="col-lg-4 col-md-6">
-        <label class="form-label">Unit</label>
-        <select class="form-select" formControlName="unit">
-          <option *ngFor="let unit of unitOptions" [value]="unit.value">{{ unit.label }}</option>
-        </select>
-      </div>
 
       <!-- Amount -->
       <div class="col-lg-4 col-md-6">
@@ -97,7 +102,7 @@
       <!-- Credit -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Credit</label>
-        <input type="number" class="form-control" formControlName="credit" (input)="calculateBalance()">
+        <input type="number" class="form-control" formControlName="credit" (input)="onCreditChange($event)">
       </div>
 
       <!-- Balance (disabled) -->
@@ -142,9 +147,12 @@
         <button type="button" class="btn btn-sm btn-secondary ms-2" (click)="onCancel()">Cancel</button>
       </div>
 
-      <!-- <div class="text-danger" *ngIf="balanceLedgerForm.errors?.['creditOrQuantityFieldsRequired']">
-        Either Credit or (Quantity, Rate, Amount) fields must be filled.
-      </div> -->
+      <!-- Form validation error messages -->
+      <div class="col-12">
+        <div class="text-danger" *ngIf="balanceLedgerForm.errors?.['quantityRateUnitRequired']">
+          Either Credit must be entered OR (Quantity, Rate, and Unit) must all be filled.
+        </div>
+      </div>
     </form>
   </div>
 </div>

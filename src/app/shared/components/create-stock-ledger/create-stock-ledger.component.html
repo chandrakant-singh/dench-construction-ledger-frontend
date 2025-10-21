@@ -69,16 +69,32 @@
         </div>
       </div>
 
-      <!-- Stock In -->
+      <!-- Stock In with Unit -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock In</label>
-        <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()" placeholder="Enter Stock In">
+        <div class="input-group">
+          <input type="number" class="form-control" formControlName="stockIn" (input)="calculateBalance()" placeholder="Enter Stock In">
+          <app-unit-selector 
+            [units]="unitOptions" 
+            [size]="'md'"
+            formControlName="unit"
+            class="unit-selector-compact">
+          </app-unit-selector>
+        </div>
       </div>
 
-      <!-- Stock Out -->
+      <!-- Stock Out with Unit -->
       <div class="col-lg-4 col-md-6">
         <label class="form-label">Stock Out</label>
-        <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()" placeholder="Enter Stock Out">
+        <div class="input-group">
+          <input type="number" class="form-control" formControlName="stockOut" (input)="calculateBalance()" placeholder="Enter Stock Out">
+          <app-unit-selector 
+            [units]="unitOptions" 
+            [size]="'md'"
+            formControlName="unit"
+            class="unit-selector-compact">
+          </app-unit-selector>
+        </div>
       </div>
 
       <!-- Balance (disabled) -->

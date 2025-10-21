@@ -1,0 +1,34 @@
+<!-- Inline Segmented Button Style (Mobile-friendly) -->
+<div *ngIf="variant === 'inline'" class="unit-selector-inline">
+  <div class="btn-group unit-btn-group" role="group" [attr.aria-label]="'Unit selector'">
+    <button
+      *ngFor="let unit of units"
+      type="button"
+      class="btn unit-btn"
+      [class.btn-outline-primary]="selectedUnit !== unit"
+      [class.btn-primary]="selectedUnit === unit"
+      [class.btn-sm]="size === 'sm'"
+      [class.btn-md]="size === 'md'"
+      [class.btn-lg]="size === 'lg'"
+      [disabled]="disabled"
+      (click)="onUnitSelect(unit)"
+      [attr.aria-pressed]="selectedUnit === unit">
+      {{ unit }}
+    </button>
+  </div>
+</div>
+
+<!-- Dropdown Style (Fallback) -->
+<div *ngIf="variant === 'dropdown'" class="unit-selector-dropdown">
+  <select
+    class="form-select"
+    [class.form-select-sm]="size === 'sm'"
+    [class.form-select-md]="size === 'md'"
+    [class.form-select-lg]="size === 'lg'"
+    [disabled]="disabled"
+    [value]="selectedUnit"
+    (change)="onSelectChange($event)">
+    <option value="" disabled>{{ placeholder }}</option>
+    <option *ngFor="let unit of units" [value]="unit">{{ unit }}</option>
+  </select>
+</div>
