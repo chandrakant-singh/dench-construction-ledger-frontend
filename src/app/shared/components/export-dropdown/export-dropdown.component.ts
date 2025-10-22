@@ -20,6 +20,7 @@ export interface ExportConfig {
   showBalance?: boolean;
   showExcel?: boolean;
   showPDF?: boolean;
+  exportFullData?: boolean; // New option to export full dataset instead of filtered data
 }
 
 @Component({
@@ -62,6 +63,7 @@ export interface ExportConfig {
 })
 export class ExportDropdownComponent {
   @Input() data: any[] = [];
+  @Input() fullData: any[] = []; // New input for full dataset
   @Input() config!: ExportConfig;
   @Output() exportStarted = new EventEmitter<string>();
   @Output() exportCompleted = new EventEmitter<string>();
@@ -127,7 +129,10 @@ export class ExportDropdownComponent {
   exportToExcel(): void {
     this.exportStarted.emit('excel');
 
-    const exportData = this.data.map(row => {
+    // Use full data if exportFullData is true and fullData is available, otherwise use filtered data
+    const dataToExport = (this.config.exportFullData && this.fullData.length > 0) ? this.fullData : this.data;
+    
+    const exportData = dataToExport.map(row => {
       const exportRow: any = {};
       this.config.columns.forEach(col => {
         exportRow[col.header] = row[col.key] || '';
@@ -180,6 +185,9 @@ export class ExportDropdownComponent {
   exportToPDF(): void {
     this.exportStarted.emit('pdf');
 
+    // Use full data if exportFullData is true and fullData is available, otherwise use filtered data
+    const dataToExport = (this.config.exportFullData && this.fullData.length > 0) ? this.fullData : this.data;
+
     const doc = new jsPDF();
     
     doc.setFontSize(18);
@@ -197,7 +205,7 @@ export class ExportDropdownComponent {
     }
 
     const tableColumns = this.config.columns.map(col => col.header);
-    const tableRows = this.data.map(row => 
+    const tableRows = dataToExport.map(row => 
       this.config.columns.map(col => row[col.key] || '')
     );
 
@@ -248,7 +256,7 @@ export class ExportDropdownComponent {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total Entries: ${this.data.length}`, 14, finalY + 30);
+    doc.text(`Total Entries: ${dataToExport.length}`, 14, finalY + 30);
 
     const fileName = `${this.config.filename}-${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
 

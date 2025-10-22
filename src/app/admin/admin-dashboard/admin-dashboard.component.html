@@ -26,6 +26,7 @@
       <app-export-dropdown 
         *ngIf="!isEditMode"
         [data]="filteredRows"
+        [fullData]="ledgerData"
         [config]="currentExportConfig"
         (exportStarted)="onExportStarted($event)"
         (exportCompleted)="onExportCompleted($event)">

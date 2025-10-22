@@ -444,7 +444,8 @@ export class SupervisorListStockLedgerComponent {
   get currentExportConfig(): ExportConfig {
     return {
       ...this.exportConfig,
-      currentBalance: this.currentBalance
+      currentBalance: this.currentBalance,
+      exportFullData: true // Enable full data export by default
     };
   }
 
