@@ -29,14 +29,15 @@ export interface SupervisorStats {
 }
 
 @Component({
-  selector: 'app-supervisor-details-modal',
+  selector: 'app-supervisor-details',
   imports: [CommonModule, FormsModule],
-  templateUrl: './supervisor-details-modal.component.html',
-  styleUrl: './supervisor-details-modal.component.scss'
+  templateUrl: './supervisor-details.component.html',
+  styleUrl: './supervisor-details.component.scss'
 })
-export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnChanges {
+export class SupervisorDetailsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() supervisor: AppUser | null = null;
   @Input() isVisible: boolean = false;
+  @Input() showModal: boolean = true; // Whether to show as modal or inline
   @Output() modalClose = new EventEmitter<void>();
 
   // Services
@@ -72,6 +73,7 @@ export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnCha
 
   // Search and filters
   searchTerm: string = '';
+  creditDebitFilter: 'all' | 'credit' | 'debit' = 'all';
   filteredExpenditureData: LedgerEntry[] = [];
   filteredStockData: StockLedgerEntry[] = [];
   filteredBalanceData: BalanceLedgerEntry[] = [];
@@ -169,6 +171,7 @@ export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnCha
   onTabChange(tab: 'expenditure' | 'stock' | 'balance'): void {
     this.activeTab = tab;
     this.searchTerm = '';
+    this.creditDebitFilter = 'all';
     this.applyFilters();
   }
 
@@ -176,38 +179,83 @@ export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnCha
     this.applyFilters();
   }
 
+  onCreditDebitFilterChange(filter: 'all' | 'credit' | 'debit'): void {
+    this.creditDebitFilter = filter;
+    this.applyFilters();
+  }
+
   private applyFilters(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredExpenditureData = [...this.expenditureData];
-      this.filteredStockData = [...this.stockData];
-      this.filteredBalanceData = [...this.balanceData];
-      return;
+    let filteredExpenditure = [...this.expenditureData];
+    let filteredStock = [...this.stockData];
+    let filteredBalance = [...this.balanceData];
+
+    // Apply credit/debit filter for expenditure ledger
+    if (this.activeTab === 'expenditure' && this.creditDebitFilter !== 'all') {
+      filteredExpenditure = filteredExpenditure.filter(entry => {
+        if (this.creditDebitFilter === 'credit') {
+          return entry.credit && entry.credit > 0;
+        } else if (this.creditDebitFilter === 'debit') {
+          return entry.debit && entry.debit > 0;
+        }
+        return true;
+      });
     }
 
-    const searchLower = this.searchTerm.toLowerCase();
+    // Apply stock in/out filter for stock ledger
+    if (this.activeTab === 'stock' && this.creditDebitFilter !== 'all') {
+      filteredStock = filteredStock.filter(entry => {
+        if (this.creditDebitFilter === 'credit') {
+          return entry.stockIn && entry.stockIn > 0;
+        } else if (this.creditDebitFilter === 'debit') {
+          return entry.stockOut && entry.stockOut > 0;
+        }
+        return true;
+      });
+    }
 
-    // Filter expenditure data
-    this.filteredExpenditureData = this.expenditureData.filter(entry =>
-      entry.description?.toLowerCase().includes(searchLower) ||
-      entry.modeOfPayment?.toLowerCase().includes(searchLower) ||
-      entry.hintBy?.toLowerCase().includes(searchLower)
-    );
+    // Apply amount filter for balance ledger
+    if (this.activeTab === 'balance' && this.creditDebitFilter !== 'all') {
+      filteredBalance = filteredBalance.filter(entry => {
+        if (this.creditDebitFilter === 'credit') {
+          return entry.credit && entry.credit > 0;
+        } else if (this.creditDebitFilter === 'debit') {
+          return entry.amount && entry.amount > 0;
+        }
+        return true;
+      });
+    }
 
-    // Filter stock data
-    this.filteredStockData = this.stockData.filter(entry =>
-      entry.mainCategory?.toLowerCase().includes(searchLower) ||
-      entry.subCategory?.toLowerCase().includes(searchLower) ||
-      entry.party?.toLowerCase().includes(searchLower) ||
-      entry.description?.toLowerCase().includes(searchLower)
-    );
+    // Apply search filter
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
 
-    // Filter balance data
-    this.filteredBalanceData = this.balanceData.filter(entry =>
-      entry.party?.toLowerCase().includes(searchLower) ||
-      entry.mainCategory?.toLowerCase().includes(searchLower) ||
-      entry.subCategory?.toLowerCase().includes(searchLower) ||
-      entry.itemName?.toLowerCase().includes(searchLower)
-    );
+      // Filter expenditure data
+      filteredExpenditure = filteredExpenditure.filter(entry =>
+        entry.description?.toLowerCase().includes(searchLower) ||
+        entry.modeOfPayment?.toLowerCase().includes(searchLower) ||
+        entry.hintBy?.toLowerCase().includes(searchLower)
+      );
+
+      // Filter stock data
+      filteredStock = filteredStock.filter(entry =>
+        entry.mainCategory?.toLowerCase().includes(searchLower) ||
+        entry.subCategory?.toLowerCase().includes(searchLower) ||
+        entry.party?.toLowerCase().includes(searchLower) ||
+        entry.description?.toLowerCase().includes(searchLower)
+      );
+
+      // Filter balance data
+      filteredBalance = filteredBalance.filter(entry =>
+        entry.party?.toLowerCase().includes(searchLower) ||
+        entry.mainCategory?.toLowerCase().includes(searchLower) ||
+        entry.subCategory?.toLowerCase().includes(searchLower) ||
+        entry.itemName?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    this.filteredExpenditureData = filteredExpenditure;
+    this.filteredStockData = filteredStock;
+    this.filteredBalanceData = filteredBalance;
   }
 
   getCurrentData(): any[] {
@@ -266,6 +314,19 @@ export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnCha
     }
   }
 
+  getFilterLabels(): { credit: string; debit: string } {
+    switch (this.activeTab) {
+      case 'expenditure':
+        return { credit: 'Credit', debit: 'Debit' };
+      case 'stock':
+        return { credit: 'Stock In', debit: 'Stock Out' };
+      case 'balance':
+        return { credit: 'Credit', debit: 'Amount' };
+      default:
+        return { credit: 'Credit', debit: 'Debit' };
+    }
+  }
+
   getCurrentColumns(): any[] {
     switch (this.activeTab) {
       case 'expenditure':
@@ -318,6 +379,7 @@ export class SupervisorDetailsModalComponent implements OnInit, OnDestroy, OnCha
     this.supervisor = null;
     this.activeTab = 'expenditure';
     this.searchTerm = '';
+    this.creditDebitFilter = 'all';
     this.expenditureData = [];
     this.stockData = [];
     this.balanceData = [];

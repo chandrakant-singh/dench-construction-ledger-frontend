@@ -1,34 +1,47 @@
-<!-- Supervisor Details Modal -->
-<div class="modal fade" [class.show]="isVisible" [style.display]="isVisible ? 'block' : 'none'" tabindex="-1" *ngIf="isVisible && supervisor">
-  <div class="modal-dialog modal-fullscreen-mobile">
-    <div class="modal-content">
-      <!-- Modal Header -->
-      <div class="modal-header bg-primary text-white">
+<!-- Supervisor Details Component -->
+<div [ngClass]="showModal ? 'modal fade' : 'supervisor-details-container'" 
+     [class.show]="isVisible" 
+     [style.display]="isVisible ? 'block' : 'none'" 
+     tabindex="-1" 
+     *ngIf="isVisible && supervisor">
+  
+  <div [ngClass]="showModal ? 'modal-dialog modal-fullscreen-mobile' : 'container-fluid'">
+    <div [ngClass]="showModal ? 'modal-content' : 'card'">
+      
+      <!-- Header -->
+      <div [ngClass]="showModal ? 'modal-header bg-primary text-white' : 'card-header bg-primary text-white'">
         <div class="d-flex align-items-center flex-grow-1">
           <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-2 me-md-3" 
                style="width: 35px; height: 35px; min-width: 35px;">
             <i class="bi bi-person-fill" style="font-size: 16px;"></i>
           </div>
           <div class="flex-grow-1 min-w-0">
-            <h5 class="modal-title mb-0 text-truncate">{{ supervisor.name }}</h5>
+            <h5 [ngClass]="showModal ? 'modal-title mb-0 text-truncate' : 'card-title mb-0 text-truncate'">
+              {{ supervisor.name }}
+            </h5>
             <small class="opacity-75 text-truncate d-block">{{ supervisor.email }}</small>
           </div>
         </div>
-        <button type="button" class="btn-close btn-close-white flex-shrink-0" (click)="closeModal()" aria-label="Close"></button>
+        <button *ngIf="showModal" 
+                type="button" 
+                class="btn-close btn-close-white flex-shrink-0" 
+                (click)="closeModal()" 
+                aria-label="Close"></button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="modal-body p-0">
+      <!-- Body -->
+      <div [ngClass]="showModal ? 'modal-body p-0' : 'card-body p-0'">
+        
         <!-- Final Balance Display -->
         <div class="bg-light border-bottom p-2 p-md-3">
           <div class="text-center">
-            <div class="mb-1">
+            <div>
               <small class="text-muted text-uppercase fw-semibold">Current Balance</small>
             </div>
-            <div class="fs-3 fw-bold" [ngClass]="getBalanceColorClass()">
+            <div class="fw-bold" [ngClass]="getBalanceColorClass()">
               {{ formatCurrency(getCurrentFinalBalance()) }}
             </div>
-            <div class="mt-1">
+            <div>
               <small class="text-muted">{{ activeTab | titlecase }} Ledger</small>
             </div>
           </div>
@@ -68,7 +81,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="row g-0 bg-light border-bottom">
+        <!-- <div class="row g-0 bg-light border-bottom">
           <div class="col-4">
             <div class="p-2 p-md-3 text-center">
               <div class="text-primary fs-5 fs-md-4 fw-bold">{{ supervisorStats.expenditureEntries }}</div>
@@ -90,7 +103,7 @@
               <small class="text-muted d-md-none">Bal</small>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Tabs Navigation -->
         <div class="border-bottom">
@@ -131,10 +144,10 @@
           </ul>
         </div>
 
-        <!-- Search Bar -->
+        <!-- Search and Filter Bar -->
         <div class="p-2 p-md-3 border-bottom bg-light">
           <div class="row align-items-center">
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-md-6">
               <div class="input-group input-group-sm">
                 <span class="input-group-text">
                   <i class="bi bi-search"></i>
@@ -146,13 +159,46 @@
                        (input)="onSearchChange()">
               </div>
             </div>
-            <div class="col-12 col-md-4 text-center text-md-end mt-2 mt-md-0">
-              <small class="text-muted">
-                {{ getCurrentData().length }} of {{ 
-                  activeTab === 'expenditure' ? expenditureData.length : 
-                  activeTab === 'stock' ? stockData.length : balanceData.length 
-                }} entries
-              </small>
+            <div class="col-12 col-md-6 mt-2 mt-md-0">
+              <div class="d-flex justify-content-md-end align-items-center gap-2">
+                <!-- Credit/Debit Filter Buttons -->
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" 
+                          class="btn btn-sm" 
+                          [ngClass]="creditDebitFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                          (click)="onCreditDebitFilterChange('all')"
+                          title="Show All">
+                    <i class="bi bi-list-ul me-1"></i>
+                    <span class="d-none d-md-inline">All</span>
+                  </button>
+                  <button type="button" 
+                          class="btn btn-sm" 
+                          [ngClass]="creditDebitFilter === 'credit' ? 'btn-success' : 'btn-outline-success'"
+                          (click)="onCreditDebitFilterChange('credit')"
+                          [title]="'Show ' + getFilterLabels().credit">
+                    <i class="bi bi-arrow-up-circle me-1"></i>
+                    <span class="d-none d-md-inline">{{ getFilterLabels().credit }}</span>
+                    <span class="d-md-none">{{ getFilterLabels().credit.split(' ')[0] }}</span>
+                  </button>
+                  <button type="button" 
+                          class="btn btn-sm" 
+                          [ngClass]="creditDebitFilter === 'debit' ? 'btn-danger' : 'btn-outline-danger'"
+                          (click)="onCreditDebitFilterChange('debit')"
+                          [title]="'Show ' + getFilterLabels().debit">
+                    <i class="bi bi-arrow-down-circle me-1"></i>
+                    <span class="d-none d-md-inline">{{ getFilterLabels().debit }}</span>
+                    <span class="d-md-none">{{ getFilterLabels().debit.split(' ')[0] }}</span>
+                  </button>
+                </div>
+                
+                <!-- Entry Count -->
+                <small class="text-muted ms-2">
+                  {{ getCurrentData().length }} of {{ 
+                    activeTab === 'expenditure' ? expenditureData.length : 
+                    activeTab === 'stock' ? stockData.length : balanceData.length 
+                  }}
+                </small>
+              </div>
             </div>
           </div>
         </div>
@@ -168,7 +214,7 @@
           </div>
 
           <!-- Data Table -->
-          <div *ngIf="!isLoading" class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+          <div *ngIf="!isLoading" class="table-responsive" [style.max-height]="showModal ? '60vh' : '50vh'" style="overflow-y: auto;">
             <table class="table table-hover table-sm mb-0">
               <thead class="table-dark sticky-top">
                 <tr>
@@ -232,8 +278,8 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
-      <div class="modal-footer bg-light p-2 p-md-3">
+      <!-- Footer -->
+      <div *ngIf="showModal" class="modal-footer bg-light p-2 p-md-3">
         <div class="d-flex justify-content-between align-items-center w-100">
           <div class="text-muted small d-none d-md-block">
             <i class="bi bi-info-circle me-1"></i>
@@ -253,4 +299,4 @@
 </div>
 
 <!-- Modal Backdrop -->
-<div class="modal-backdrop fade" [class.show]="isVisible" *ngIf="isVisible"></div>
+<div *ngIf="showModal && isVisible" class="modal-backdrop fade" [class.show]="isVisible"></div>

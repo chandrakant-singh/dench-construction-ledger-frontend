@@ -77,25 +77,27 @@
     <div class="col-12">
       <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
-          <div class="table-responsive-sm">
+          <div class="table-responsive">
             <table class="table table-hover table-sm mb-0">
               <thead class="table-dark sticky-top">
                 <tr>
-                  <th scope="col" class="border-0 py-2 px-3" style="min-width: 150px;">
+                  <th scope="col" class="border-0 py-1 py-md-2 px-1 px-md-3" style="min-width: 120px;">
                     <i class="bi bi-person me-1 d-none d-md-inline"></i>
                     <span class="fw-semibold">Name</span>
                   </th>
-                  <th scope="col" class="border-0 py-2 px-3" style="min-width: 200px;">
-                    <i class="bi bi-envelope me-1 d-none d-md-inline"></i>
+                  <th scope="col" class="border-0 py-1 py-md-2 px-1 px-md-3 d-none d-md-table-cell" style="min-width: 150px;">
+                    <i class="bi bi-envelope me-1"></i>
                     <span class="fw-semibold">Email</span>
                   </th>
-                  <th scope="col" class="border-0 py-2 px-3 text-center" style="min-width: 80px;">
+                  <th scope="col" class="border-0 py-1 py-md-2 px-1 px-md-3 text-center" style="min-width: 60px;">
                     <i class="bi bi-shield-check me-1 d-none d-md-inline"></i>
-                    <span class="fw-semibold">Status</span>
+                    <span class="fw-semibold d-none d-md-inline">Status</span>
+                    <span class="fw-semibold d-md-none">St</span>
                   </th>
-                  <th scope="col" class="border-0 py-2 px-2 text-center" style="min-width: 120px;">
+                  <th scope="col" class="border-0 py-1 py-md-2 px-1 px-md-2 text-center" style="min-width: 100px;">
                     <i class="bi bi-gear me-1 d-none d-md-inline"></i>
-                    <span class="fw-semibold">Actions</span>
+                    <span class="fw-semibold d-none d-md-inline">Actions</span>
+                    <span class="fw-semibold d-md-none">Act</span>
                   </th>
                 </tr>
               </thead>
@@ -119,17 +121,17 @@
                     class="align-middle"
                     [class.table-warning]="supervisor.isDisabled"
                     [class.opacity-75]="supervisor.isDisabled">
-                  <td class="py-2 px-3">
+                  <td class="py-1 py-md-2 px-1 px-md-3">
                     <div class="d-flex align-items-center">
-                      <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" 
-                           style="width: 32px; height: 32px; font-size: 14px;">
+                      <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-1 me-md-2 flex-shrink-0" 
+                           style="width: 28px; height: 28px; font-size: 12px;">
                         <i class="bi bi-person-fill"></i>
                       </div>
                       <div class="flex-grow-1 min-w-0">
                         <!-- Normal View -->
                         <div *ngIf="editingSupervisor?.uid !== supervisor.uid">
-                          <div class="fw-semibold text-truncate">{{ supervisor.name }}</div>
-                          <small class="text-muted d-sm-none text-truncate d-block">
+                          <div class="fw-semibold text-truncate" style="font-size: 0.85rem;">{{ supervisor.name }}</div>
+                          <small class="text-muted d-sm-none text-truncate d-block" style="font-size: 0.7rem;">
                             <i class="bi bi-envelope me-1"></i>{{ supervisor.email }}
                           </small>
                         </div>
@@ -143,8 +145,8 @@
                   </td>
                   
                   <!-- Email Column - Hidden on mobile -->
-                  <td class="py-2 px-3 d-none d-sm-table-cell">
-                    <span *ngIf="editingSupervisor?.uid !== supervisor.uid" class="text-muted text-truncate">
+                  <td class="py-1 py-md-2 px-1 px-md-3 d-none d-sm-table-cell">
+                    <span *ngIf="editingSupervisor?.uid !== supervisor.uid" class="text-muted text-truncate" style="font-size: 0.85rem;">
                       <i class="bi bi-envelope me-1"></i>{{ supervisor.email }}
                     </span>
                     <input *ngIf="editingSupervisor?.uid === supervisor.uid" 
@@ -153,32 +155,34 @@
                            [(ngModel)]="editingSupervisor!.email">
                   </td>
                   
-                  <td class="py-2 px-3 text-center">
-                    <span class="badge" 
+                  <td class="py-1 py-md-2 px-1 px-md-3 text-center">
+                    <span class="badge badge-sm" 
                           [ngClass]="supervisor.isDisabled ? 'bg-warning text-dark' : 'bg-success'">
                       <i class="bi me-1 d-none d-md-inline" [ngClass]="supervisor.isDisabled ? 'bi-x-circle' : 'bi-check-circle'"></i>
                       <span class="d-none d-sm-inline">{{ supervisor.isDisabled ? 'Disabled' : 'Active' }}</span>
-                      <span class="d-sm-none">{{ supervisor.isDisabled ? 'Off' : 'On' }}</span>
+                      <span class="d-sm-none">{{ supervisor.isDisabled ? 'Disabled' : 'Active' }}</span>
                     </span>
                   </td>
                   
-                  <td class="py-2 px-2 text-center">
+                  <td class="py-1 py-md-2 px-1 px-md-2 text-center">
                     <!-- Normal Action Buttons -->
                     <div class="btn-group btn-group-sm" role="group" *ngIf="editingSupervisor?.uid !== supervisor.uid">
                       <!-- View Details Button -->
                       <button type="button" 
                               class="btn btn-outline-success border-0" 
                               (click)="showSupervisorDetails(supervisor)"
-                              title="View Ledger Details">
-                        <i class="bi bi-eye"></i>
+                              title="View Ledger Details"
+                              style="min-width: 32px; min-height: 32px;">
+                        <i class="bi bi-eye" style="font-size: 12px;"></i>
                       </button>
                       
                       <!-- Edit Button -->
                       <button type="button" 
                               class="btn btn-outline-primary border-0" 
                               (click)="editSupervisor(supervisor)"
-                              title="Edit">
-                        <i class="bi bi-pencil"></i>
+                              title="Edit"
+                              style="min-width: 32px; min-height: 32px;">
+                        <i class="bi bi-pencil" style="font-size: 12px;"></i>
                       </button>
                       
                       <!-- Disable/Enable Button -->
@@ -186,16 +190,18 @@
                               class="btn border-0" 
                               [ngClass]="supervisor.isDisabled ? 'btn-outline-success' : 'btn-outline-warning'"
                               (click)="toggleSupervisorStatus(supervisor)"
-                              [title]="supervisor.isDisabled ? 'Enable' : 'Disable'">
-                        <i class="bi" [ngClass]="supervisor.isDisabled ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                              [title]="supervisor.isDisabled ? 'Enable' : 'Disable'"
+                              style="min-width: 32px; min-height: 32px;">
+                        <i class="bi" [ngClass]="supervisor.isDisabled ? 'bi-check-circle' : 'bi-x-circle'" style="font-size: 12px;"></i>
                       </button>
                       
                       <!-- Password View Button -->
                       <button type="button" 
                               class="btn btn-outline-info border-0" 
                               (click)="showPassword(supervisor)"
-                              title="Password">
-                        <i class="bi bi-key"></i>
+                              title="Password"
+                              style="min-width: 32px; min-height: 32px;">
+                        <i class="bi bi-key" style="font-size: 12px;"></i>
                       </button>
                     </div>
                     
@@ -320,8 +326,9 @@
 <div class="modal-backdrop fade" [class.show]="showPasswordModal" *ngIf="showPasswordModal"></div>
 
 <!-- Supervisor Details Modal -->
-<app-supervisor-details-modal
+<app-supervisor-details
   [supervisor]="selectedSupervisorForDetails"
   [isVisible]="showSupervisorDetailsModal"
+  [showModal]="true"
   (modalClose)="closeSupervisorDetailsModal()">
-</app-supervisor-details-modal>
+</app-supervisor-details>

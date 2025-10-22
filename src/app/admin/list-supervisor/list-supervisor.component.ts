@@ -6,11 +6,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AppUser } from '../../core/models/user.model';
 import { ToastService } from '../../core/services/toaster.service';
-import { SupervisorDetailsModalComponent } from '../../shared/components/supervisor-details-modal/supervisor-details-modal.component';
+import { SupervisorDetailsComponent } from '../../shared/components/supervisor-details/supervisor-details.component';
 
 @Component({
   selector: 'app-list-supervisor',
-  imports: [CommonModule, FormsModule, RouterModule, SupervisorDetailsModalComponent],
+  imports: [CommonModule, FormsModule, RouterModule, SupervisorDetailsComponent],
   templateUrl: './list-supervisor.component.html',
   styleUrl: './list-supervisor.component.scss'
 })
