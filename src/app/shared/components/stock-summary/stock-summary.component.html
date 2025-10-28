@@ -1,0 +1,195 @@
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 bg-light">
+    <h6 class="mb-0 fw-bold">
+      <i class="bi bi-bar-chart me-1"></i> Stock Summary
+    </h6>
+    <div class="d-flex align-items-center gap-2">
+      <button 
+        *ngIf="isDetailsVisible" 
+        class="btn btn-sm btn-outline-secondary py-1 px-2" 
+        (click)="hideDetails()">
+        <i class="bi bi-arrow-left me-1"></i> Back
+      </button>
+      <button 
+        class="btn btn-sm btn-outline-danger py-1 px-2" 
+        (click)="closeSummary()"
+        title="Close Summary">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  </div>
+  
+  <div class="card-body p-0">
+    <!-- Summary View -->
+    <div *ngIf="!isDetailsVisible">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th width="30" class="ps-2"></th>
+              <th class="fw-semibold">Category / Sub-Category / Party</th>
+              <th class="text-end fw-semibold">In</th>
+              <th class="text-end fw-semibold">Out</th>
+              <th class="text-end fw-semibold">Balance</th>
+              <th width="50" class="text-center">View</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let category of summaryData">
+              <!-- Category Row -->
+              <tr [ngClass]="getRowClass(category)" [class.table-primary]="category.type === 'category'">
+                <td class="ps-2">
+                  <i 
+                    *ngIf="category.children.length > 0" 
+                    class="bi cursor-pointer" 
+                    [ngClass]="getIconClass(category)"
+                    (click)="toggleExpansion(category)">
+                  </i>
+                </td>
+                <td [ngClass]="getIndentClass(category)" class="text-truncate">
+                  <strong *ngIf="category.type === 'category'">{{ category.name }}</strong>
+                  <span *ngIf="category.type !== 'category'">{{ category.name }}</span>
+                </td>
+                <td class="text-end">
+                  <span class="badge bg-success">{{ category.stockIn | number }}</span>
+                </td>
+                <td class="text-end">
+                  <span class="badge bg-danger">{{ category.stockOut | number }}</span>
+                </td>
+                <td class="text-end">
+                  <span 
+                    class="badge" 
+                    [ngClass]="{
+                      'bg-success': category.balance > 0,
+                      'bg-danger': category.balance < 0,
+                      'bg-secondary': category.balance === 0
+                    }">
+                    {{ category.balance | number }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <button 
+                    class="btn btn-sm btn-outline-info" 
+                    (click)="showDetails(category)"
+                    title="View Details">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Sub-Category Rows (when expanded) -->
+              <ng-container *ngIf="category.isExpanded">
+                <ng-container *ngFor="let subCategory of category.children">
+                  <tr [ngClass]="getRowClass(subCategory)" 
+                      [class.table-info]="subCategory.type === 'subcategory'">
+                    <td class="ps-2">
+                      <i 
+                        *ngIf="subCategory.children.length > 0" 
+                        class="bi cursor-pointer" 
+                        [ngClass]="getIconClass(subCategory)"
+                        (click)="toggleExpansion(subCategory)">
+                      </i>
+                    </td>
+                    <td [ngClass]="getIndentClass(subCategory)" class="text-truncate">
+                      <span class="fw-semibold">{{ subCategory.name }}</span>
+                    </td>
+                    <td class="text-end">
+                      <span class="badge bg-success">{{ subCategory.stockIn | number }}</span>
+                    </td>
+                    <td class="text-end">
+                      <span class="badge bg-danger">{{ subCategory.stockOut | number }}</span>
+                    </td>
+                    <td class="text-end">
+                      <span 
+                        class="badge" 
+                        [ngClass]="{
+                          'bg-success': subCategory.balance > 0,
+                          'bg-danger': subCategory.balance < 0,
+                          'bg-secondary': subCategory.balance === 0
+                        }">
+                        {{ subCategory.balance | number }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <button 
+                        class="btn btn-sm btn-outline-info" 
+                        (click)="showDetails(subCategory)"
+                        title="View Details">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- Party Rows (when sub-category is expanded) -->
+                  <ng-container *ngIf="subCategory.isExpanded">
+                    <tr *ngFor="let party of subCategory.children" 
+                        [ngClass]="getRowClass(party)" 
+                        [class.table-light]="party.type === 'party'">
+                      <td class="ps-2"></td>
+                      <td [ngClass]="getIndentClass(party)" class="text-truncate">
+                        <span>{{ party.name }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="badge bg-success">{{ party.stockIn | number }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span class="badge bg-danger">{{ party.stockOut | number }}</span>
+                      </td>
+                      <td class="text-end">
+                        <span 
+                          class="badge" 
+                          [ngClass]="{
+                            'bg-success': party.balance > 0,
+                            'bg-danger': party.balance < 0,
+                            'bg-secondary': party.balance === 0
+                          }">
+                          {{ party.balance | number }}
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <button 
+                          class="btn btn-sm btn-outline-info" 
+                          (click)="showDetails(party)"
+                          title="View Details">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Details View -->
+    <div *ngIf="isDetailsVisible && selectedNode" class="details-container">
+      <div class="card-header bg-light py-2 px-3">
+        <h6 class="mb-0 fw-bold">
+          <i class="bi bi-list-ul me-1"></i> 
+          {{ selectedNode.name }} 
+          <small class="text-muted fw-normal">({{ selectedNode.type | titlecase }})</small>
+        </h6>
+      </div>
+      <div class="table-responsive">
+        <ngx-datatable
+          class="bootstrap"
+          [rows]="selectedNode.entries"
+          [columns]="detailColumns"
+          [columnMode]="'standard'"
+          [headerHeight]="30"
+          [footerHeight]="30"
+          [scrollbarH]="true"
+          [scrollbarV]="true"
+          [messages]="{ emptyMessage: 'No records found', totalMessage: 'total', selectedMessage: 'selected' }"
+          [rowHeight]="35" 
+          [limit]="10">
+          <ngx-datatable-column *ngFor="let col of detailColumns" [name]="col.name" [prop]="col.prop">
+          </ngx-datatable-column>
+        </ngx-datatable>
+      </div>
+    </div>
+  </div>
+</div>

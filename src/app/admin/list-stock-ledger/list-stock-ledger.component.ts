@@ -11,6 +11,7 @@ import { StockLedgerEntry } from '../../core/models/stock-ledger';
 import { StockLedgerService } from '../../core/services/stock-ledger.service';
 import { CreateStockLedgerComponent } from "../../shared/components/create-stock-ledger/create-stock-ledger.component";
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
+import { StockSummaryComponent } from '../../shared/components/stock-summary/stock-summary.component';
 import { Offcanvas } from 'bootstrap';
 import { StockLedgerCategoryService } from '../../core/services/stock-ledger-category.service';
 import { StoreLedgerCategory } from '../../core/models/stock-ledger-category.model';
@@ -27,7 +28,8 @@ import { RoleUtils } from '../../core/utils/role.utils';
     NgxDatatableComponent,
     CreateStockLedgerComponent,
     GenericFilterComponent,
-    ExportDropdownComponent
+    ExportDropdownComponent,
+    StockSummaryComponent
   ],
   templateUrl: './list-stock-ledger.component.html',
   styleUrl: './list-stock-ledger.component.scss'
@@ -40,6 +42,7 @@ export class ListStockLedgerComponent {
   todayEntries: StockLedgerEntry[] = []; // Today's entries for edit mode
   lastStockLedger: StockLedgerEntry | null = null;
   private searchTimeout: any;
+  showSummaryView: boolean = false;
   // categories: StoreLedgerCategory = {
   //   id: '',
   //   category: {},
@@ -504,6 +507,21 @@ export class ListStockLedgerComponent {
 
   onExportCompleted(type: string) {
     console.log(`${type} export completed successfully`);
+  }
+
+  // Summary view methods
+  toggleSummaryView() {
+    this.showSummaryView = !this.showSummaryView;
+  }
+
+  onSummaryViewToggle(showDetails: boolean) {
+    // Handle any additional logic when summary view toggles
+    console.log('Summary view details toggled:', showDetails);
+    
+    // If summary is being closed (showDetails = false and we're in summary view)
+    if (!showDetails && this.showSummaryView) {
+      this.showSummaryView = false;
+    }
   }
 
   private isDateInRange(entry: StockLedgerEntry, dateFilter: any): boolean {
