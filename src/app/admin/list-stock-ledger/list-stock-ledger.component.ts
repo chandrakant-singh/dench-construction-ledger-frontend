@@ -148,6 +148,12 @@ export class ListStockLedgerComponent {
   }
 
   onDeleteLedger(row: any) {
+    // Check if user has permission to delete
+    if (!this.roleUtils.canDeleteEntries()) {
+      this.toastService.show('Only SuperAdmin can delete stock ledger entries', 'info');
+      return;
+    }
+
     const confirmDelete = confirm(
       `Are you sure you want to delete this stock ledger entry?\n\n` +
       `This will:\n` +

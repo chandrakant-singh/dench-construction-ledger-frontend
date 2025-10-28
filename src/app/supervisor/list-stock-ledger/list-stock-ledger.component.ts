@@ -146,6 +146,12 @@ export class SupervisorListStockLedgerComponent {
 
   // Supervisors can only delete pending entries
   onDeleteLedger(row: any) {
+    // Check if user has permission to delete
+    if (!this.roleUtils.canDeleteEntries()) {
+      this.toastService.show('Only SuperAdmin can delete stock ledger entries', 'info');
+      return;
+    }
+
     if (row.status !== 'pending') {
       this.toastService.show('Only pending entries can be deleted', 'info');
       return;
@@ -497,5 +503,9 @@ export class SupervisorListStockLedgerComponent {
       stockOut: NumberUtils.sanitizeToInteger(entry.stockOut),
       balance: NumberUtils.sanitizeToInteger(entry.balance)
     };
+  }
+
+  get canDeleteEntries(): boolean {
+    return this.roleUtils.canDeleteEntries();
   }
 }

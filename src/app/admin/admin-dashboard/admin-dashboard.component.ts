@@ -169,6 +169,12 @@ export class AdminDashboardComponent {
   }
 
   onDelete(row: any) {
+    // Check if user has permission to delete
+    if (!this.roleUtils.canDeleteEntries()) {
+      this.toastService.show('Only SuperAdmin can delete ledger entries', 'info');
+      return;
+    }
+
     const confirmDelete = confirm(
       `Are you sure you want to delete this entry?\n\n` +
       `This will:\n` +
@@ -484,6 +490,10 @@ export class AdminDashboardComponent {
       currentBalance: this.currentBalance,
       exportFullData: true // Enable full data export by default
     };
+  }
+
+  get canDeleteEntries(): boolean {
+    return this.roleUtils.canDeleteEntries();
   }
 
   // Export event handlers

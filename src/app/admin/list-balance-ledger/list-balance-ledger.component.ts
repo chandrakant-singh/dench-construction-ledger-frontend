@@ -140,6 +140,12 @@ export class ListBalanceLedgerComponent {
   }
 
   onDeleteLedger(row: any) {
+    // Check if user has permission to delete
+    if (!this.roleUtils.canDeleteEntries()) {
+      this.toastService.show('Only SuperAdmin can delete balance ledger entries', 'info');
+      return;
+    }
+
     const confirmDelete = confirm(
       `Are you sure you want to delete this balance ledger entry?\n\n` +
       `This will:\n` +

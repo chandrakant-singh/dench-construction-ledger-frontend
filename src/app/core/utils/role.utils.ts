@@ -158,10 +158,10 @@ export class RoleUtils {
   }
 
   /**
-   * Check if user can delete entries
+   * Check if user can delete entries (SuperAdmin only)
    */
   canDeleteEntries(): boolean {
-    return this.isAdminOrSuperAdmin();
+    return this.isSuperAdmin();
   }
 
   /**
