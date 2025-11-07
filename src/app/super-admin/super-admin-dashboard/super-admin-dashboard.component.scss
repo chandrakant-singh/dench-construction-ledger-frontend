@@ -29,4 +29,33 @@
 
 .fs-1 {
   font-size: 2.5rem !important;
+}
+
+.activities-scrollable {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // Custom scrollbar styling for webkit browsers (Chrome, Safari, Edge)
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
+  
+  // For Firefox
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 } 
