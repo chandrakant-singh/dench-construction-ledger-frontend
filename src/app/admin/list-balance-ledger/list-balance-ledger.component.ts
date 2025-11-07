@@ -12,6 +12,7 @@ import { BalanceLedgerService } from '../../core/services/balance-ledger.service
 import { CreateBalanceLedgerComponent } from '../../shared/components/create-balance-ledger/create-balance-ledger.component';
 import { GenericFilterComponent } from '../../shared/components/generic-filter/generic-filter.component';
 import { BalanceLedgerItemService } from '../../core/services/balance-ledger-item.service';
+import { BalanceSummaryComponent } from '../../shared/components/balance-summary/balance-summary.component';
 import { Offcanvas } from 'bootstrap';
 import { ToastService } from '../../core/services/toaster.service';
 import { NumberUtils } from '../../core/utils/number.utils';
@@ -26,7 +27,8 @@ import { RoleUtils } from '../../core/utils/role.utils';
     NgxDatatableComponent,
     CreateBalanceLedgerComponent,
     GenericFilterComponent,
-    ExportDropdownComponent
+    ExportDropdownComponent,
+    BalanceSummaryComponent
   ],
   templateUrl: './list-balance-ledger.component.html',
   styleUrl: './list-balance-ledger.component.scss'
@@ -39,6 +41,7 @@ export class ListBalanceLedgerComponent {
   todayEntries: BalanceLedgerEntry[] = []; // Today's entries for edit mode
   lastLedger: BalanceLedgerEntry | null = null;
   private searchTimeout: any;
+  showSummaryView: boolean = false;
 
   ledgerData: Array<BalanceLedgerEntry> = [];
   showLedgerForm: boolean = false;
@@ -519,6 +522,21 @@ export class ListBalanceLedgerComponent {
 
   onExportCompleted(type: string) {
     console.log(`${type} export completed successfully`);
+  }
+
+  // Summary view methods
+  toggleSummaryView() {
+    this.showSummaryView = !this.showSummaryView;
+  }
+
+  onSummaryViewToggle(showDetails: boolean) {
+    // Handle any additional logic when summary view toggles
+    console.log('Summary view details toggled:', showDetails);
+    
+    // If summary is being closed (showDetails = false and we're in summary view)
+    if (!showDetails && this.showSummaryView) {
+      this.showSummaryView = false;
+    }
   }
 
   private isDateInRange(entry: BalanceLedgerEntry, dateFilter: any): boolean {

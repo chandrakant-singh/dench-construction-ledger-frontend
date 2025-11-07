@@ -1,0 +1,269 @@
+// Mobile-first design - optimized for mobile devices
+.mobile-summary-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  
+  .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    border: none;
+    
+    h6 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    
+    .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+  }
+}
+
+.mobile-table {
+  font-size: 0.8rem;
+  
+  thead {
+    th {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.25rem;
+      border-bottom: 2px solid #dee2e6;
+      white-space: nowrap;
+    }
+  }
+  
+  tbody {
+    td {
+      padding: 0.4rem 0.25rem;
+      vertical-align: middle;
+      border-bottom: 1px solid #f8f9fa;
+    }
+  }
+}
+
+.mobile-expand-icon {
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    transform: scale(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.mobile-text {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.mobile-category-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.mobile-subcategory-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.mobile-party-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #7f8c8d;
+}
+
+.mobile-badge {
+  font-size: 0.65rem;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-weight: 600;
+  min-width: 2rem;
+  text-align: center;
+  display: inline-block;
+}
+
+.mobile-view-btn {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  min-width: 2rem;
+  height: 1.8rem;
+  
+  i {
+    font-size: 0.7rem;
+  }
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.summary-row {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateX(2px);
+  }
+  
+  &.party-row {
+    font-weight: 700;
+    background-color: rgba(13, 110, 253, 0.08);
+    border-left: 3px solid #007bff;
+  }
+  
+  &.category-row {
+    font-weight: 600;
+    background-color: rgba(13, 202, 240, 0.06);
+    border-left: 2px solid #0dcaf0;
+  }
+  
+  &.subcategory-row {
+    font-weight: 500;
+    background-color: rgba(248, 249, 250, 0.8);
+    border-left: 1px solid #e9ecef;
+  }
+}
+
+.mobile-details {
+  .card-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 0;
+  }
+}
+
+.mobile-details-table {
+  .mobile-datatable {
+    font-size: 0.75rem;
+    
+    .ngx-datatable {
+      .datatable-header {
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      
+      .datatable-body {
+        .datatable-row-wrapper {
+          .datatable-row {
+            font-size: 0.75rem;
+            min-height: 40px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Touch-friendly interactions
+@media (hover: none) and (pointer: coarse) {
+  .mobile-expand-icon,
+  .mobile-view-btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .summary-row {
+    &:hover {
+      background-color: transparent;
+      transform: none;
+    }
+    
+    &:active {
+      background-color: rgba(0, 123, 255, 0.1);
+    }
+  }
+}
+
+// Extra small devices (phones, less than 576px)
+@media (max-width: 575.98px) {
+  .mobile-table {
+    font-size: 0.7rem;
+    
+    th, td {
+      padding: 0.3rem 0.15rem;
+    }
+  }
+  
+  .mobile-badge {
+    font-size: 0.6rem;
+    padding: 0.15em 0.3em;
+    min-width: 1.5rem;
+  }
+  
+  .mobile-view-btn {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
+    min-width: 1.8rem;
+    height: 1.6rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.7rem;
+  }
+  
+  .mobile-category-text {
+    font-size: 0.75rem;
+  }
+  
+  .mobile-subcategory-text {
+    font-size: 0.7rem;
+  }
+  
+  .mobile-party-text {
+    font-size: 0.65rem;
+  }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .mobile-table {
+    font-size: 0.75rem;
+  }
+  
+  .mobile-badge {
+    font-size: 0.7rem;
+  }
+  
+  .mobile-view-btn {
+    font-size: 0.7rem;
+  }
+}
+
+// Ensure proper spacing and alignment
+.ps-2 {
+  padding-left: 0.5rem !important;
+}
+
+.ps-3 {
+  padding-left: 1rem !important;
+}
+
+.ps-5 {
+  padding-left: 2rem !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
